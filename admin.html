@@ -289,7 +289,7 @@
         const session = localStorage.getItem(SESSION_KEY);
         const currentUser = localStorage.getItem("buku_mimpi_current_user");
         
-        if (session !== "logged_in" || !currentUser) {
+        if (session !== "logged_in" || currentUser !== "admin") {
             window.location.href = "login.html";
         } else {
             document.getElementById('userBar').innerHTML = `👤 ${currentUser} <button id="logoutBtn">Logout</button>`;
