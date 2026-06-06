@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Login Admin - Buku Mimpi</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -17,7 +16,7 @@
             padding: 1rem;
         }
         .login-container {
-            max-width: 450px;
+            max-width: 400px;
             width: 100%;
             background: rgba(255,248,235,0.95);
             border-radius: 2rem;
@@ -30,15 +29,8 @@
             text-align: center;
             border-bottom: 3px solid #e6b450;
         }
-        .header h1 {
-            font-size: 1.6rem;
-            color: #fae67a;
-        }
-        .header p {
-            color: #ecd9b4;
-            font-size: 0.8rem;
-            margin-top: 0.3rem;
-        }
+        .header h1 { font-size: 1.6rem; color: #fae67a; }
+        .header p { color: #ecd9b4; font-size: 0.8rem; margin-top: 0.3rem; }
         .tabs {
             display: flex;
             background: #3e2a1f;
@@ -127,8 +119,8 @@
     <!-- Panel Login -->
     <div class="form-panel active" id="loginPanel">
         <div class="form-group">
-            <label>📧 E-mel</label>
-            <input type="email" id="loginEmail" placeholder="contoh@email.com">
+            <label>👤 Nama Pengguna</label>
+            <input type="text" id="loginUsername" placeholder="contoh: admin">
         </div>
         <div class="form-group">
             <label>🔒 Kata Laluan</label>
@@ -141,30 +133,54 @@
     <!-- Panel Daftar -->
     <div class="form-panel" id="registerPanel">
         <div class="form-group">
-            <label>📧 E-mel</label>
-            <input type="email" id="regEmail" placeholder="contoh@email.com">
+            <label>👤 Nama Pengguna</label>
+            <input type="text" id="regUsername" placeholder="contoh: admin">
         </div>
         <div class="form-group">
-            <label>🔒 Kata Laluan (min 6 huruf)</label>
-            <input type="password" id="regPassword" placeholder="******">
+            <label>🔒 Kata Laluan (min 4 huruf)</label>
+            <input type="password" id="regPassword" placeholder="****">
         </div>
         <button id="doRegisterBtn">Daftar Akaun</button>
         <div id="registerMessage" class="message"></div>
     </div>
     <div class="footer">
-        🔐 Sistem pengesahan Supabase | Bebas Google
+        🔐 Sistem login sendiri | Data disimpan dalam pelayar
     </div>
 </div>
 
 <script>
-    // =========== SUPABASE KONFIGURASI ===========
-    const SUPABASE_URL = "https://ofatbleambihhqbboalh.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mYXRibGVhbWJpaGhxYmJvYWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MzgxMzQsImV4cCI6MjA5NjMxNDEzNH0.FOGqpRUa9Ch0Z7Ilk-yoCkKxs1zrKix_2DxdnTz6OXA";
+    // =========== STORAGE KEYS ===========
+    const USERS_KEY = "buku_mimpi_users";
+    const SESSION_KEY = "buku_mimpi_session";
     
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Data admin lalai (jika tiada pengguna)
+    const defaultUsers = [
+        { username: "admin", password: "admin123" }
+    ];
     
-    // EMAIL ADMIN (tukar kepada email yang anda daftar)
-    const ADMIN_EMAIL = "admin@example.com";  // <--- GANTI DENGAN EMAIL ANDA
+    // Muat senarai pengguna
+    function loadUsers() {
+        const stored = localStorage.getItem(USERS_KEY);
+        if (stored) {
+            return JSON.parse(stored);
+        } else {
+            localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers));
+            return defaultUsers;
+        }
+    }
+    
+    // Simpan senarai pengguna
+    function saveUsers(users) {
+        localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    }
+    
+    // Semak session
+    function checkSession() {
+        const session = localStorage.getItem(SESSION_KEY);
+        if (session === "logged_in") {
+            window.location.href = "admin.html";
+        }
+    }
     
     // Fungsi bantu
     function showMessage(element, msg, isError = true) {
@@ -173,61 +189,68 @@
         setTimeout(() => {
             element.textContent = '';
             element.className = 'message';
-        }, 5000);
+        }, 3000);
     }
     
     // =========== LOGIN ===========
-    document.getElementById('doLoginBtn').addEventListener('click', async () => {
-        const email = document.getElementById('loginEmail').value.trim();
+    document.getElementById('doLoginBtn').addEventListener('click', () => {
+        const username = document.getElementById('loginUsername').value.trim();
         const password = document.getElementById('loginPassword').value;
         
-        if (!email || !password) {
-            showMessage(document.getElementById('loginMessage'), 'Sila isi e-mel dan kata laluan');
+        if (!username || !password) {
+            showMessage(document.getElementById('loginMessage'), 'Sila isi nama pengguna dan kata laluan');
             return;
         }
         
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        const users = loadUsers();
+        const user = users.find(u => u.username === username && u.password === password);
         
-        if (error) {
-            showMessage(document.getElementById('loginMessage'), error.message);
+        if (user) {
+            localStorage.setItem(SESSION_KEY, "logged_in");
+            localStorage.setItem("buku_mimpi_current_user", username);
+            showMessage(document.getElementById('loginMessage'), 'Login berjaya! Mengalihkan...', false);
+            setTimeout(() => {
+                window.location.href = "admin.html";
+            }, 1000);
         } else {
-            // Semak sama ada pengguna adalah admin
-            const isAdmin = (data.user.email === ADMIN_EMAIL);
-            if (isAdmin) {
-                showMessage(document.getElementById('loginMessage'), 'Login berjaya! Mengalihkan...', false);
-                setTimeout(() => {
-                    window.location.href = 'admin.html';
-                }, 1500);
-            } else {
-                showMessage(document.getElementById('loginMessage'), 'Akses ditolak. Anda bukan admin.', true);
-                await supabase.auth.signOut();
-            }
+            showMessage(document.getElementById('loginMessage'), 'Nama pengguna atau kata laluan salah');
         }
     });
     
     // =========== REGISTER ===========
-    document.getElementById('doRegisterBtn').addEventListener('click', async () => {
-        const email = document.getElementById('regEmail').value.trim();
+    document.getElementById('doRegisterBtn').addEventListener('click', () => {
+        const username = document.getElementById('regUsername').value.trim();
         const password = document.getElementById('regPassword').value;
         
-        if (!email || !password) {
-            showMessage(document.getElementById('registerMessage'), 'Sila isi e-mel dan kata laluan');
+        if (!username || !password) {
+            showMessage(document.getElementById('registerMessage'), 'Sila isi nama pengguna dan kata laluan');
             return;
         }
-        if (password.length < 6) {
-            showMessage(document.getElementById('registerMessage'), 'Kata laluan minimum 6 huruf');
+        if (password.length < 4) {
+            showMessage(document.getElementById('registerMessage'), 'Kata laluan minimum 4 huruf');
             return;
         }
         
-        const { data, error } = await supabase.auth.signUp({ email, password });
+        const users = loadUsers();
         
-        if (error) {
-            showMessage(document.getElementById('registerMessage'), error.message);
-        } else {
-            showMessage(document.getElementById('registerMessage'), 'Pendaftaran berjaya! Sila semak e-mel anda untuk pengesahan. Kemudian login.', false);
-            document.getElementById('regEmail').value = '';
-            document.getElementById('regPassword').value = '';
+        // Semak jika username sudah wujud
+        if (users.find(u => u.username === username)) {
+            showMessage(document.getElementById('registerMessage'), 'Nama pengguna sudah wujud!');
+            return;
         }
+        
+        // Tambah pengguna baru
+        users.push({ username, password });
+        saveUsers(users);
+        
+        showMessage(document.getElementById('registerMessage'), 'Pendaftaran berjaya! Sila login.', false);
+        document.getElementById('regUsername').value = '';
+        document.getElementById('regPassword').value = '';
+        
+        // Tukar ke tab login selepas 1 saat
+        setTimeout(() => {
+            document.getElementById('loginTab').click();
+        }, 1500);
     });
     
     // =========== TUKAR TAB ===========
@@ -244,13 +267,8 @@
         document.getElementById('loginPanel').classList.remove('active');
     });
     
-    // Semak jika sudah login, terus ke admin
-    window.addEventListener('load', async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && user.email === ADMIN_EMAIL) {
-            window.location.href = 'admin.html';
-        }
-    });
+    // Semak jika sudah login
+    checkSession();
 </script>
 </body>
 </html>
