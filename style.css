@@ -1,0 +1,317 @@
+/* style.css - Gaya seragam untuk semua halaman */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', 'Poppins', system-ui;
+    background: linear-gradient(145deg, #1e2a3a 0%, #0f1724 100%);
+    min-height: 100vh;
+    display: flex;
+}
+
+/* =========== SIDEBAR KIRI =========== */
+.sidebar {
+    width: 260px;
+    background: #2c1e12;
+    color: #ffefcf;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+    z-index: 100;
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    text-align: center;
+    border-bottom: 1px solid #e6b450;
+}
+
+.sidebar-header h2 {
+    font-size: 1.3rem;
+    color: #fae67a;
+}
+
+.sidebar-header p {
+    font-size: 0.7rem;
+    color: #ecd9b4;
+}
+
+.sidebar-menu {
+    flex: 1;
+    padding: 1rem 0;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.8rem 1.5rem;
+    color: #ffefcf;
+    text-decoration: none;
+    font-weight: 500;
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+.menu-item:hover {
+    background: #5e422b;
+}
+
+.menu-item.active {
+    background: #ffefcf;
+    color: #3e2a1f;
+}
+
+.menu-item i {
+    font-style: normal;
+    font-size: 1.2rem;
+}
+
+.sidebar-footer {
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.7rem;
+    border-top: 1px solid #5e422b;
+}
+
+/* =========== KANDUNGAN UTAMA =========== */
+.main-content {
+    flex: 1;
+    margin-left: 260px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* =========== KAD MIMPI =========== */
+.dream-container {
+    max-width: 800px;
+    width: 100%;
+    background: rgba(255,248,235,0.95);
+    border-radius: 1.5rem;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.dream-card {
+    padding: 2rem;
+}
+
+.dream-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #4b2e1a;
+    border-left: 5px solid #f5b042;
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.dream-description {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #2e241a;
+    background: #fff6ea;
+    padding: 1.2rem;
+    border-radius: 1rem;
+    white-space: pre-wrap;
+    margin-bottom: 1.5rem;
+}
+
+.counter {
+    font-size: 0.8rem;
+    color: #7a5a3a;
+    margin-bottom: 1rem;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    background: #8b6946;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 2rem;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn:hover {
+    background: #a57c52;
+    transform: scale(1.02);
+}
+
+.voice-btn {
+    background: linear-gradient(95deg, #2c5f7a, #1e3e58);
+}
+
+.voice-btn:hover {
+    background: linear-gradient(95deg, #1f4a64, #123247);
+}
+
+.speech-status {
+    font-size: 0.7rem;
+    color: #7e6b53;
+    margin-top: 1rem;
+}
+
+/* =========== SENARAI MIMPI =========== */
+.dream-list-section {
+    max-width: 800px;
+    width: 100%;
+    background: rgba(255,248,235,0.9);
+    border-radius: 1.5rem;
+    padding: 1rem;
+}
+
+.dream-list-section h3 {
+    color: #4b2e1a;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e6b450;
+}
+
+.dream-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.dream-list-item {
+    background: #fffaf2;
+    padding: 0.8rem 1rem;
+    border-radius: 1rem;
+    cursor: pointer;
+    transition: 0.2s;
+    border: 1px solid #f3dfbc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dream-list-item:hover {
+    background: #f0e4d0;
+    transform: translateX(5px);
+}
+
+.dream-list-title {
+    font-weight: 600;
+    color: #4b2e1a;
+}
+
+.dream-list-date {
+    font-size: 0.7rem;
+    color: #7a5a3a;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 2rem;
+    color: #7a5a3a;
+}
+
+/* =========== FAVORIT MODAL =========== */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #fffaf2;
+    max-width: 500px;
+    width: 90%;
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.modal-content h3 {
+    color: #4b2e1a;
+    margin-bottom: 1rem;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 1rem;
+}
+
+.favorite-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    border-bottom: 1px solid #e2caa4;
+}
+
+.remove-fav {
+    background: #aa6f5e;
+    border: none;
+    padding: 0.2rem 0.6rem;
+    border-radius: 1rem;
+    color: white;
+    cursor: pointer;
+}
+
+/* =========== FOOTER =========== */
+.footer {
+    background: #2c1e12;
+    text-align: center;
+    padding: 0.7rem;
+    color: #cbae86;
+    font-size: 0.7rem;
+    margin-top: 1rem;
+    border-radius: 1rem;
+}
+
+/* =========== RESPONSIF =========== */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 70px;
+    }
+    .sidebar-header h2, .sidebar-header p, .menu-item span {
+        display: none;
+    }
+    .sidebar-header {
+        padding: 1rem;
+    }
+    .menu-item {
+        justify-content: center;
+        padding: 0.8rem;
+    }
+    .main-content {
+        margin-left: 70px;
+    }
+    .dream-title {
+        font-size: 1.3rem;
+    }
+}
+</style>
