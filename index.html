@@ -4,12 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Buku Mimpi - Karangan Mimpi-mimpi</title>
-    <!-- Clerk SDK -->
-    <script async crossorigin="anonymous" 
-        data-clerk-publishable-key="pk_test_YnVzeS1qb2V5LTk5LmNsZXJrLmFjY291bnRzLmRldiQ" 
-        src="https://busy-joey-99.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js" 
-        type="text/javascript">
-    </script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -32,7 +28,6 @@
             display: flex;
             flex-direction: column;
         }
-        /* GLOBAL HEADER */
         .global-header {
             background: #2c1e12;
             padding: 1rem;
@@ -55,7 +50,7 @@
             top: 0.8rem;
             right: 1rem;
         }
-        .clerk-btn, .user-info button {
+        .login-btn, .user-info button {
             background: #fff;
             border: none;
             padding: 0.3rem 0.8rem;
@@ -80,7 +75,6 @@
             border-radius: 1rem;
             font-size: 0.6rem;
         }
-        /* TAB NAVIGASI */
         .tab-nav {
             display: flex;
             flex-wrap: nowrap;
@@ -111,7 +105,6 @@
             color: #3e2a1f;
             border-bottom: 2px solid #ffb347;
         }
-        /* KANDUNGAN MIMPI */
         .tab-content-container {
             background: #ffefcf;
             padding: 1rem;
@@ -186,7 +179,6 @@
             color: #7e6b53;
             margin-left: 0.5rem;
         }
-        /* ADMIN SECTION (KOLOM EDIT) - MUNCUL SELEPAS FOOTER */
         .admin-section {
             background: #f7efdf;
             border-top: 3px solid #d6b575;
@@ -197,9 +189,6 @@
             color: #4b2e1a;
             font-size: 1.2rem;
             margin-bottom: 0.6rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
         .button-group {
             display: flex;
@@ -236,7 +225,6 @@
         }
         .btn-bulk { background: #4a6741; }
         .btn-post:hover, .btn-bulk:hover { filter: brightness(1.05); }
-        /* GLOBAL FOOTER */
         .global-footer {
             background: #2c1e12;
             text-align: center;
@@ -244,7 +232,6 @@
             color: #cbae86;
             font-size: 0.7rem;
         }
-        /* MODAL */
         .modal {
             display: none;
             position: fixed;
@@ -298,6 +285,11 @@
             border-radius: 1.2rem;
             color: #7a5a3a;
         }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #7a5a3a;
+        }
         @media (max-width: 550px) {
             .dream-book { margin: 0.5rem; border-radius: 1.5rem; }
             .global-header h1 { font-size: 1.3rem; }
@@ -310,20 +302,17 @@
 </head>
 <body>
 <div class="dream-book">
-    <!-- GLOBAL HEADER -->
     <div class="global-header">
         <h1>📖 BUKU MIMPI</h1>
         <p>✦ Karangan mimpi-mimpi ✦ Setiap tab adalah dunia tersendiri ✦</p>
         <div class="login-area" id="loginArea"></div>
     </div>
 
-    <!-- TAB NAVIGASI -->
     <div class="tab-nav" id="tabNav"></div>
-    
-    <!-- KANDUNGAN MIMPI -->
-    <div class="tab-content-container" id="tabContent"></div>
+    <div class="tab-content-container" id="tabContent">
+        <div class="loading">Loading mimpi...</div>
+    </div>
 
-    <!-- ADMIN SECTION (KOLOM EDIT) - HANYA UNTUK ADMIN -->
     <div class="admin-section" id="adminSection">
         <h3>✍️ Kolom Admin – Tambah / Edit / Hapus Mimpi ✍️</h3>
         <div class="button-group">
@@ -344,9 +333,8 @@
         </div>
     </div>
 
-    <!-- GLOBAL FOOTER -->
     <div class="global-footer">
-        🎙️ Suara AI lelaki | Data disimpan dalam penyemak imbas (LocalStorage) | Admin perlu login dengan Google
+        🎙️ Suara AI lelaki | Data disimpan di Supabase | Admin perlu login dengan Google
     </div>
 </div>
 
@@ -377,46 +365,21 @@
 </div>
 
 <script>
-    // =========== STORAGE KEY UNTUK LOCALSTORAGE ===========
-    const STORAGE_KEY = "buku_mimpi_data";
+    // =========== KONFIGURASI SUPABASE (SUDAH DIMASUKKAN) ===========
+    const SUPABASE_URL = "https://ofatbleambihhqbboalh.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mYXRibGVhbWJpaGhxYmJvYWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MzgxMzQsImV4cCI6MjA5NjMxNDEzNH0.FOGqpRUa9Ch0Z7Ilk-yoCkKxs1zrKix_2DxdnTz6OXA";
     
-    // Data mimpi lalai (jika kosong)
-    const defaultDreams = [
-        {
-            id: "1",
-            title: "🌙 Terbang di Langit Perak",
-            shortLabel: "Terbang",
-            description: "Aku melayang tanpa sayap, di atas lautan awan yang berkilauan seperti perak. Angin malam berbisik lembut, membawaku melewati gugusan bintang. Rasa bebas yang luar biasa, seakan aku mampu menyentuh bulan."
-        },
-        {
-            id: "2",
-            title: "🏃‍♂️ Kejar-kejaran dengan Bayangan",
-            shortLabel: "Kejar",
-            description: "Aku berlari di lorong tanpa ujung, diikuti bayangan hitam yang selalu mengekor. Kakiku terasa berat, tapi pengejar itu tak pernah lelah. Setelah melewati pintu cahaya, bayangan itu berubah menjadi teman masa kecilku yang tertawa."
-        }
-    ];
-
+    // ⚠️ PENTING: Gantikan email di bawah dengan email Google ANDA
+    const ADMIN_EMAIL = "ADMIN_EMAIL_HERE";  // <--- UBAH INI
+    
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
     let dreamsData = [];
     let currentActiveId = null;
-    let isAdmin = false;
     let currentUser = null;
+    let isAdmin = false;
     let preferredVoice = null;
     let voicesLoaded = false;
-
-    // =========== FUNGSI LOCALSTORAGE ===========
-    function loadDreamsFromStorage() {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-            dreamsData = JSON.parse(stored);
-        } else {
-            dreamsData = [...defaultDreams];
-            saveDreamsToStorage();
-        }
-    }
-
-    function saveDreamsToStorage() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(dreamsData));
-    }
 
     // =========== SUARA AI LELAKI ===========
     function initVoiceSelection() {
@@ -491,7 +454,7 @@
             btn.className = 'tab-btn';
             if (currentActiveId === dream.id) btn.classList.add('active');
             btn.setAttribute('data-tab', dream.id);
-            const label = (dream.shortLabel && dream.shortLabel.trim()) ? dream.shortLabel : dream.title.substring(0, 12);
+            const label = (dream.short_label && dream.short_label.trim()) ? dream.short_label : dream.title.substring(0, 12);
             btn.innerHTML = `<span>${escapeHtml(label)}</span>`;
             btn.addEventListener('click', () => activateTab(dream.id));
             tabNav.appendChild(btn);
@@ -521,7 +484,6 @@
             tabContent.appendChild(pane);
         });
 
-        // Event suara
         document.querySelectorAll('.voice-btn').forEach(btn => {
             btn.removeEventListener('click', voiceHandler);
             btn.addEventListener('click', voiceHandler);
@@ -532,7 +494,6 @@
             if (dream) speakDream(dream.description, id);
         }
         
-        // Event edit/hapus (hanya untuk admin)
         if (isAdmin) {
             document.querySelectorAll('.edit-btn').forEach(btn => {
                 btn.removeEventListener('click', editHandler);
@@ -563,194 +524,189 @@
         return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
     }
 
-    // =========== CRUD OPERATIONS (UNTUK ADMIN) ===========
-    function addNewDream(title, description, shortLabel) {
-        if (!title.trim() || !description.trim()) {
-            alert("Tajuk dan cerita mimpi tidak boleh kosong!");
-            return false;
+    // =========== FUNGSI LOAD DATA DARI SUPABASE ===========
+    async function loadDreams() {
+        const tabContent = document.getElementById('tabContent');
+        if (tabContent) tabContent.innerHTML = '<div class="loading">Loading mimpi...</div>';
+        
+        const { data, error } = await supabase
+            .from('dreams')
+            .select('*')
+            .order('created_at', { ascending: true });
+        
+        if (error) {
+            console.error("Error loading dreams:", error);
+            if (tabContent) tabContent.innerHTML = `<div class="empty-message">⚠️ Gagal memuat mimpi: ${error.message}</div>`;
+            return;
         }
+        
+        dreamsData = data || [];
+        renderDreamBook();
+        if (dreamsData.length > 0 && !currentActiveId) activateTab(dreamsData[0].id);
+    }
+
+    // =========== CRUD OPERATIONS ===========
+    async function addDream(title, desc, shortLabel) {
+        if (!title.trim() || !desc.trim()) throw new Error("Tajuk dan cerita wajib");
         const newId = Date.now().toString() + "_" + Math.random().toString(36).substr(2, 6);
-        const newDream = {
+        const { error } = await supabase.from('dreams').insert([{
             id: newId,
             title: title.trim(),
-            shortLabel: shortLabel.trim() || title.trim().substring(0, 12),
-            description: description.trim()
-        };
-        dreamsData.push(newDream);
-        saveDreamsToStorage();
-        renderDreamBook();
+            short_label: shortLabel.trim() || title.trim().substring(0, 12),
+            description: desc.trim()
+        }]);
+        if (error) throw new Error(error.message);
+        await loadDreams();
         activateTab(newId);
-        return true;
     }
 
-    function updateDream(dreamId, newTitle, newShort, newDesc) {
-        const index = dreamsData.findIndex(d => d.id === dreamId);
-        if (index !== -1) {
-            dreamsData[index].title = newTitle;
-            dreamsData[index].shortLabel = newShort || newTitle.substring(0, 12);
-            dreamsData[index].description = newDesc;
-            saveDreamsToStorage();
-            renderDreamBook();
-            activateTab(dreamId);
-        }
+    async function updateDream(id, title, shortLabel, desc) {
+        const { error } = await supabase
+            .from('dreams')
+            .update({ title, short_label: shortLabel, description: desc })
+            .eq('id', id);
+        if (error) throw new Error(error.message);
+        await loadDreams();
+        activateTab(id);
     }
 
-    function deleteDreamById(dreamId) {
-        dreamsData = dreamsData.filter(d => d.id !== dreamId);
-        saveDreamsToStorage();
-        if (dreamsData.length === 0) {
-            currentActiveId = null;
-            renderDreamBook();
-        } else {
-            renderDreamBook();
-            activateTab(dreamsData[0].id);
-        }
+    async function deleteDream(id) {
+        const { error } = await supabase.from('dreams').delete().eq('id', id);
+        if (error) throw new Error(error.message);
+        await loadDreams();
+        if (dreamsData.length > 0) activateTab(dreamsData[0].id);
     }
 
-    function bulkImportDreams(dreamsArray) {
-        if (!Array.isArray(dreamsArray) || dreamsArray.length === 0) {
-            alert("Data mestilah berupa array tidak kosong.");
-            return false;
-        }
-        let added = 0;
+    async function bulkImport(dreamsArray) {
+        if (!Array.isArray(dreamsArray) || dreamsArray.length === 0) throw new Error("Array kosong");
+        const newDreams = [];
         for (let item of dreamsArray) {
             if (item.title && item.description) {
-                const newId = Date.now().toString() + "_" + added + "_" + Math.random().toString(36).substr(2, 4);
-                const newDream = {
-                    id: newId,
+                newDreams.push({
+                    id: Date.now().toString() + "_" + Math.random().toString(36).substr(2, 6) + "_" + newDreams.length,
                     title: item.title.trim(),
-                    shortLabel: (item.shortLabel && item.shortLabel.trim()) ? item.shortLabel.trim() : item.title.trim().substring(0, 12),
+                    short_label: (item.shortLabel?.trim()) || item.title.trim().substring(0, 12),
                     description: item.description.trim()
-                };
-                dreamsData.push(newDream);
-                added++;
+                });
             }
         }
-        if (added > 0) {
-            saveDreamsToStorage();
-            renderDreamBook();
-            if (dreamsData.length > 0) activateTab(dreamsData[dreamsData.length - 1].id);
-            alert(`Berjaya import ${added} mimpi.`);
-            return true;
-        } else {
-            alert("Tiada mimpi yang sah (setiap mimpi perlukan 'title' dan 'description').");
-            return false;
-        }
+        if (newDreams.length === 0) throw new Error("Tiada data sah");
+        const { error } = await supabase.from('dreams').insert(newDreams);
+        if (error) throw new Error(error.message);
+        await loadDreams();
+        return newDreams.length;
     }
 
-    // =========== HANDLER UNTUK ADMIN ==========
+    // =========== HANDLER ADMIN ===========
     let editingId = null;
     const editModal = document.getElementById('editModal');
+    
     function editHandler(e) {
         const id = e.currentTarget.getAttribute('data-edit-id');
         const dream = dreamsData.find(d => d.id === id);
         if (!dream) return;
         editingId = id;
         document.getElementById('editTitle').value = dream.title;
-        document.getElementById('editShortLabel').value = dream.shortLabel || '';
+        document.getElementById('editShortLabel').value = dream.short_label || '';
         document.getElementById('editDescription').value = dream.description;
         editModal.style.display = 'flex';
     }
-    function saveEdit() {
+    
+    async function saveEdit() {
         if (!editingId) return;
         const newTitle = document.getElementById('editTitle').value.trim();
         const newShort = document.getElementById('editShortLabel').value.trim();
         const newDesc = document.getElementById('editDescription').value.trim();
         if (!newTitle || !newDesc) { alert("Tajuk dan cerita wajib!"); return; }
-        updateDream(editingId, newTitle, newShort || newTitle.substring(0,12), newDesc);
-        editModal.style.display = 'none';
-        editingId = null;
-    }
-    function deleteHandler(e) {
-        const id = e.currentTarget.getAttribute('data-delete-id');
-        if (confirm("Padam mimpi ini? Tindakan ini kekal.")) {
-            deleteDreamById(id);
-        }
-    }
-
-    // =========== CLERK AUTH & ADMIN CHECK ==========
-    async function checkIsAdmin(user) {
-        if (!user) return false;
         try {
-            const metadata = user.publicMetadata;
-            return metadata && metadata.role === 'admin';
-        } catch (error) {
-            console.error("Error checking admin metadata:", error);
-            return false;
+            await updateDream(editingId, newTitle, newShort || newTitle.substring(0,12), newDesc);
+            editModal.style.display = 'none';
+            editingId = null;
+        } catch(e) { alert(e.message); }
+    }
+    
+    async function deleteHandler(e) {
+        const id = e.currentTarget.getAttribute('data-delete-id');
+        if (confirm("Padam mimpi ini untuk semua pengguna?")) {
+            try {
+                await deleteDream(id);
+            } catch(e) { alert(e.message); }
         }
     }
 
-    function updateUIForUser() {
-        const adminSection = document.getElementById('adminSection');
-        if (isAdmin) {
-            adminSection.style.display = 'block';
-        } else {
-            adminSection.style.display = 'none';
-        }
-        renderDreamBook();
-    }
-
-    function updateClerkUI() {
+    // =========== SUPABASE AUTH ===========
+    async function checkAndUpdateAuth() {
+        const { data: { user } } = await supabase.auth.getUser();
+        currentUser = user;
         const loginArea = document.getElementById('loginArea');
-        if (window.Clerk && window.Clerk.user) {
-            currentUser = window.Clerk.user;
-            loginArea.innerHTML = `<div class="user-info">👤 ${currentUser.primaryEmailAddress?.emailAddress} ${isAdmin ? '<span class="admin-badge">Admin</span>' : ''}<button id="logoutBtn">Logout</button></div>`;
-            document.getElementById('logoutBtn')?.addEventListener('click', () => window.Clerk.signOut());
+        
+        if (user) {
+            isAdmin = user.email === ADMIN_EMAIL;
+            loginArea.innerHTML = `
+                <div class="user-info">
+                    👤 ${user.email} ${isAdmin ? '<span class="admin-badge">Admin</span>' : ''}
+                    <button id="logoutBtn">Logout</button>
+                </div>
+            `;
+            document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+                await supabase.auth.signOut();
+                location.reload();
+            });
         } else {
-            currentUser = null;
-            loginArea.innerHTML = `<button class="clerk-btn" id="clerkLoginBtn">🔑 Login dengan Google</button>`;
-            document.getElementById('clerkLoginBtn')?.addEventListener('click', () => window.Clerk.openSignIn());
+            isAdmin = false;
+            loginArea.innerHTML = `
+                <button class="login-btn" id="loginBtn">🔑 Login dengan Google</button>
+            `;
+            document.getElementById('loginBtn')?.addEventListener('click', async () => {
+                const { error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: { redirectTo: window.location.origin + window.location.pathname }
+                });
+                if (error) alert("Login gagal: " + error.message);
+            });
         }
+        
+        const adminSection = document.getElementById('adminSection');
+        if (adminSection) adminSection.style.display = isAdmin ? 'block' : 'none';
+        renderDreamBook();
     }
 
-    // =========== INISIALISASI ==========
+    // Subscribe ke realtime Supabase
+    function subscribeToRealtime() {
+        const channel = supabase
+            .channel('dreams-changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'dreams' }, () => {
+                loadDreams();
+            })
+            .subscribe();
+    }
+
+    // =========== INISIALISASI ===========
     window.addEventListener('load', async () => {
-        // Muat data dari LocalStorage
-        loadDreamsFromStorage();
-        renderDreamBook();
-        if (dreamsData.length > 0 && !currentActiveId) activateTab(dreamsData[0].id);
-        
         // Suara
         if (window.speechSynthesis) {
             if (window.speechSynthesis.getVoices().length) initVoiceSelection();
             else window.speechSynthesis.onvoiceschanged = initVoiceSelection;
         }
         
-        // Clerk
-        if (window.Clerk) {
-            await window.Clerk.load();
-            const user = window.Clerk.user;
-            isAdmin = user ? await checkIsAdmin(user) : false;
-            updateClerkUI();
-            updateUIForUser();
-            
-            window.Clerk.addListener(async () => {
-                const newUser = window.Clerk.user;
-                isAdmin = newUser ? await checkIsAdmin(newUser) : false;
-                updateClerkUI();
-                updateUIForUser();
-            });
-        }
+        // Auth dan data
+        await checkAndUpdateAuth();
+        await loadDreams();
+        subscribeToRealtime();
         
-        // Event untuk admin form
-        document.getElementById('postDreamBtn')?.addEventListener('click', () => {
+        // Admin form events
+        document.getElementById('postDreamBtn')?.addEventListener('click', async () => {
             if (!isAdmin) return;
             const title = document.getElementById('newDreamTitle').value;
             const desc = document.getElementById('newDreamDesc').value;
             const short = document.getElementById('newDreamShort').value;
-            if (addNewDream(title, desc, short)) {
+            try {
+                await addDream(title, desc, short);
                 document.getElementById('newDreamTitle').value = '';
                 document.getElementById('newDreamDesc').value = '';
                 document.getElementById('newDreamShort').value = '';
-                const notif = document.createElement('div');
-                notif.textContent = '✅ Mimpi baru berjaya ditambah!';
-                notif.style.position = 'fixed'; notif.style.bottom = '20px'; notif.style.left = '50%';
-                notif.style.transform = 'translateX(-50%)'; notif.style.backgroundColor = '#2c5f7a';
-                notif.style.color = 'white'; notif.style.padding = '6px 16px'; notif.style.borderRadius = '40px';
-                notif.style.zIndex = '999'; notif.style.fontSize = '0.8rem';
-                document.body.appendChild(notif);
-                setTimeout(() => notif.remove(), 2000);
-            }
+                alert("Mimpi berjaya ditambah!");
+            } catch(e) { alert(e.message); }
         });
         
         document.getElementById('bulkImportBtn')?.addEventListener('click', () => {
@@ -762,11 +718,11 @@
             if (!jsonText) return alert("Masukkan JSON");
             try {
                 const parsed = JSON.parse(jsonText);
-                if (bulkImportDreams(parsed)) {
-                    document.getElementById('bulkJsonData').value = '';
-                    document.getElementById('bulkModal').style.display = 'none';
-                }
-            } catch(e) { alert("JSON tidak sah"); }
+                const count = await bulkImport(parsed);
+                document.getElementById('bulkJsonData').value = '';
+                document.getElementById('bulkModal').style.display = 'none';
+                alert(`Berjaya import ${count} mimpi.`);
+            } catch(e) { alert("JSON tidak sah atau gagal import: " + e.message); }
         });
         
         document.getElementById('cancelBulkBtn')?.addEventListener('click', () => {
