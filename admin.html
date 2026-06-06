@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -529,4 +528,34 @@
         checkAuth();
         if (window.speechSynthesis) {
             if (window.speechSynthesis.getVoices().length) initVoice();
-            else
+            else window.speechSynthesis.onvoiceschanged = initVoice;
+        }
+        
+        document.getElementById('postDreamBtn').onclick = async () => {
+            if (!isAdmin) return;
+            const title = document.getElementById('newTitle').value;
+            const desc = document.getElementById('newDesc').value;
+            const short = document.getElementById('newShort').value;
+            try {
+                await addDream(title, desc, short);
+                document.getElementById('newTitle').value = '';
+                document.getElementById('newDesc').value = '';
+                document.getElementById('newShort').value = '';
+                alert("Mimpi ditambah!");
+            } catch(e) { alert(e.message); }
+        };
+        
+        document.getElementById('bulkImportBtn').onclick = openBulk;
+        document.getElementById('confirmBulkBtn').onclick = confirmBulk;
+        document.getElementById('cancelBulkBtn').onclick = closeBulk;
+        document.getElementById('cancelEditBtn').onclick = closeEdit;
+        document.getElementById('saveEditBtn').onclick = saveEdit;
+        
+        window.onclick = (e) => {
+            if (e.target === document.getElementById('bulkModal')) closeBulk();
+            if (e.target === document.getElementById('editModal')) closeEdit();
+        };
+    });
+</script>
+</body>
+</html>
