@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Buku Mimpi - Pembaca</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -30,16 +31,8 @@
             text-align: center;
             border-bottom: 3px solid #e6b450;
         }
-        .header h1 {
-            font-size: 1.6rem;
-            color: #fae67a;
-            text-shadow: 2px 2px 0 #5a3e1f;
-        }
-        .header p {
-            color: #ecd9b4;
-            font-style: italic;
-            font-size: 0.8rem;
-        }
+        .header h1 { font-size: 1.6rem; color: #fae67a; text-shadow: 2px 2px 0 #5a3e1f; }
+        .header p { color: #ecd9b4; font-style: italic; font-size: 0.8rem; }
         .tab-nav {
             display: flex;
             flex-wrap: nowrap;
@@ -65,11 +58,7 @@
             flex-shrink: 0;
         }
         .tab-btn:hover { background: #7b5a3c; }
-        .tab-btn.active {
-            background: #ffefcf;
-            color: #3e2a1f;
-            border-bottom: 2px solid #ffb347;
-        }
+        .tab-btn.active { background: #ffefcf; color: #3e2a1f; border-bottom: 2px solid #ffb347; }
         .tab-content-container {
             background: #ffefcf;
             padding: 1rem;
@@ -77,10 +66,7 @@
         }
         .tab-pane { display: none; animation: fadeSlide 0.25s ease-out; }
         .tab-pane.active-pane { display: block; }
-        @keyframes fadeSlide {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .dream-card {
             background: #fffaf2;
             border-radius: 1.5rem;
@@ -166,27 +152,20 @@
         <div class="empty-message">Memuatkan mimpi...</div>
     </div>
     <div class="footer">
-        🎙️ Suara AI lelaki | Koleksi mimpi daripada admin
+        🎙️ Suara AI lelaki | Koleksi mimpi dikongsi ramai
     </div>
 </div>
 
 <script>
-    const STORAGE_KEY = "buku_mimpi_data";
+    const SUPABASE_URL = "https://ofatbleambihhqbboalh.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mYXRibGVhbWJpaGhxYmJvYWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MzgxMzQsImV4cCI6MjA5NjMxNDEzNH0.FOGqpRUa9Ch0Z7Ilk-yoCkKxs1zrKix_2DxdnTz6OXA";
+    
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
     let dreamsData = [];
     let currentActiveId = null;
     let preferredVoice = null;
     let voicesLoaded = false;
-
-    function loadDreams() {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-            dreamsData = JSON.parse(stored);
-        } else {
-            dreamsData = [];
-        }
-        render();
-    }
 
     function initVoice() {
         const voices = window.speechSynthesis.getVoices();
@@ -218,6 +197,22 @@
         return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
     }
 
+    async function loadDreams() {
+        const { data, error } = await supabase
+            .from('dreams')
+            .select('*')
+            .order('created_at', { ascending: true });
+        
+        if (error) {
+            console.error("Error:", error);
+            dreamsData = [];
+        } else {
+            dreamsData = data || [];
+        }
+        render();
+        if (dreamsData.length > 0 && !currentActiveId) activateTab(dreamsData[0].id);
+    }
+
     function render() {
         const tabNav = document.getElementById('tabNav');
         const tabContent = document.getElementById('tabContent');
@@ -240,7 +235,7 @@
             btn.className = 'tab-btn';
             if (currentActiveId === dream.id) btn.classList.add('active');
             btn.setAttribute('data-tab', dream.id);
-            const label = (dream.shortLabel && dream.shortLabel.trim()) ? dream.shortLabel : dream.title.substring(0, 12);
+            const label = (dream.short_label && dream.short_label.trim()) ? dream.short_label : dream.title.substring(0, 12);
             btn.innerHTML = `<span>${escapeHtml(label)}</span>`;
             btn.onclick = () => activateTab(dream.id);
             tabNav.appendChild(btn);
