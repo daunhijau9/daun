@@ -36,6 +36,29 @@
                 transform: translateX(-50%) translateY(0);
             }
         }
+        
+        /* Modal Daftar */
+        .register-modal .modal-content {
+            max-width: 400px;
+        }
+        .register-modal .form-group {
+            margin-bottom: 1rem;
+        }
+        .register-modal .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #5a3e28;
+            margin-bottom: 0.3rem;
+            font-size: 0.85rem;
+        }
+        .register-modal .form-group input {
+            width: 100%;
+            padding: 0.7rem;
+            border-radius: 1rem;
+            border: 1px solid #e2caa4;
+            background: #fffdf9;
+            font-family: inherit;
+        }
     </style>
 </head>
 <body>
@@ -52,6 +75,9 @@
         <div class="sidebar-menu">
             <div class="menu-item active" id="homeLink">
                 <i>🏠</i> <span>Home</span>
+            </div>
+            <div class="menu-item" id="registerMenuLink">
+                <i>📝</i> <span>Daftar Akaun</span>
             </div>
             <div class="menu-item" id="loginLogoutLink">
                 <i>🔑</i> <span id="loginLogoutText">Login</span>
@@ -108,6 +134,30 @@
         </div>
     </div>
 
+    <!-- MODAL DAFTAR (REGISTER) -->
+    <div id="registerModal" class="modal register-modal">
+        <div class="modal-content">
+            <h3>📝 Daftar Akaun Baru</h3>
+            <div class="form-group">
+                <label>👤 Nama Pengguna</label>
+                <input type="text" id="regUsername" placeholder="Pilih nama pengguna">
+            </div>
+            <div class="form-group">
+                <label>🔒 Kata Laluan (min 4 huruf)</label>
+                <input type="password" id="regPassword" placeholder="****">
+            </div>
+            <div class="form-group">
+                <label>🔒 Ulang Kata Laluan</label>
+                <input type="password" id="regConfirmPassword" placeholder="****">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-small" id="cancelRegisterBtn">Batal</button>
+                <button class="btn btn-small" id="confirmRegisterBtn">Daftar</button>
+            </div>
+            <div id="registerMessage" style="margin-top: 1rem; font-size: 0.8rem; text-align: center;"></div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
     <script>
         let dreamsData = [];
@@ -116,7 +166,6 @@
         
         // =========== TOAST NOTIFICATION ===========
         function showToast(message, linkText, linkUrl) {
-            // Remove existing toast
             const existingToast = document.querySelector('.toast');
             if (existingToast) existingToast.remove();
             
@@ -153,11 +202,91 @@
         document.getElementById('hamburgerBtn').onclick = openSidebar;
         document.getElementById('overlay').onclick = closeSidebar;
         
+        // =========== FUNGSI PENGGUNA ===========
+        function loadUsersData() {
+            const stored = localStorage.getItem(USERS_KEY);
+            if (stored) {
+                return JSON.parse(stored);
+            } else {
+                const defaultUsers = [{ username: ADMIN_USERNAME, password: ADMIN_PASSWORD, createdAt: new Date().toISOString() }];
+                localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers));
+                return defaultUsers;
+            }
+        }
+        
+        function saveUsersData(users) {
+            localStorage.setItem(USERS_KEY, JSON.stringify(users));
+        }
+        
+        function registerUser(username, password) {
+            const users = loadUsersData();
+            
+            // Semak jika username sudah wujud
+            if (users.find(u => u.username === username)) {
+                return { success: false, message: "Nama pengguna sudah wujud!" };
+            }
+            if (username === ADMIN_USERNAME) {
+                return { success: false, message: "Nama pengguna ini tidak tersedia" };
+            }
+            if (password.length < 4) {
+                return { success: false, message: "Kata laluan minimum 4 huruf" };
+            }
+            
+            users.push({ 
+                username: username, 
+                password: password, 
+                createdAt: new Date().toISOString() 
+            });
+            saveUsersData(users);
+            return { success: true, message: "Pendaftaran berjaya! Sila login." };
+        }
+        
+        // =========== MODAL DAFTAR ===========
+        function openRegisterModal() {
+            document.getElementById('regUsername').value = '';
+            document.getElementById('regPassword').value = '';
+            document.getElementById('regConfirmPassword').value = '';
+            document.getElementById('registerMessage').innerHTML = '';
+            document.getElementById('registerModal').style.display = 'flex';
+            if (window.innerWidth <= 768) closeSidebar();
+        }
+        
+        function closeRegisterModal() {
+            document.getElementById('registerModal').style.display = 'none';
+        }
+        
+        function handleRegister() {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            
+            if (!username || !password) {
+                document.getElementById('registerMessage').innerHTML = '<span style="color: #aa2e2e;">Sila isi semua ruangan</span>';
+                return;
+            }
+            if (password !== confirmPassword) {
+                document.getElementById('registerMessage').innerHTML = '<span style="color: #aa2e2e;">Kata laluan tidak sama</span>';
+                return;
+            }
+            
+            const result = registerUser(username, password);
+            if (result.success) {
+                document.getElementById('registerMessage').innerHTML = `<span style="color: #2e6a2e;">${result.message}</span>`;
+                setTimeout(() => {
+                    closeRegisterModal();
+                    showToast('✅ Pendaftaran berjaya! Sila login.', 'Login', 'login.html');
+                }, 1500);
+            } else {
+                document.getElementById('registerMessage').innerHTML = `<span style="color: #aa2e2e;">${result.message}</span>`;
+            }
+        }
+        
         // =========== UPDATE SIDEBAR STATE ===========
         function updateSidebar() {
             const loggedIn = isLoggedIn();
             const loginLogoutText = document.getElementById('loginLogoutText');
             const loginLogoutLink = document.getElementById('loginLogoutLink');
+            const registerMenuLink = document.getElementById('registerMenuLink');
             
             if (loggedIn) {
                 loginLogoutText.innerHTML = 'Logout';
@@ -167,6 +296,9 @@
                     closeSidebar();
                     window.location.href = "index.html";
                 };
+                // Sembunyikan menu daftar jika sudah login
+                if (registerMenuLink) registerMenuLink.style.display = 'none';
+                
                 const currentUser = localStorage.getItem("buku_mimpi_current_user");
                 if (currentUser === 'admin') {
                     if (!document.getElementById('adminLink')) {
@@ -187,6 +319,9 @@
                     closeSidebar();
                     window.location.href = 'login.html';
                 };
+                // Tunjukkan menu daftar jika belum login
+                if (registerMenuLink) registerMenuLink.style.display = 'flex';
+                
                 const adminLink = document.getElementById('adminLink');
                 if (adminLink) adminLink.remove();
             }
@@ -201,7 +336,6 @@
             document.getElementById('counter').innerHTML = `📖 ${dream.title}`;
             document.getElementById('speechStatus').innerHTML = "✨ AI siap membaca";
             
-            // Update favorite button based on login status and favorite status
             const favBtn = document.getElementById('favoriteBtn');
             if (!isLoggedIn()) {
                 favBtn.innerHTML = '⭐ Simpan Favorit';
@@ -268,9 +402,8 @@
             renderDreamList();
         });
         
-        // =========== FAVORIT (DENGAN SEMAKAN LOGIN) ===========
+        // =========== FAVORIT ===========
         function showFavorites() {
-            // Semak login dahulu
             if (!isLoggedIn()) {
                 showToast('🔐 Sila login untuk melihat favorit anda', 'Login', 'login.html');
                 if (window.innerWidth <= 768) closeSidebar();
@@ -311,14 +444,11 @@
             document.getElementById('favoriteModal').style.display = 'flex';
         }
         
-        // Fungsi untuk handle favorit dengan semakan login
         function handleFavoriteClick() {
-            // Semak login dahulu
             if (!isLoggedIn()) {
                 showToast('🔐 Sila login untuk menyimpan favorit', 'Login', 'login.html');
                 return;
             }
-            
             if (!currentDream) return;
             
             if (isFavorite(currentDream.id)) {
@@ -368,6 +498,7 @@
                 showFavorites();
                 if (window.innerWidth <= 768) closeSidebar();
             };
+            document.getElementById('registerMenuLink').onclick = openRegisterModal;
             document.getElementById('closeFavoriteModal').onclick = () => {
                 document.getElementById('favoriteModal').style.display = 'none';
             };
@@ -375,9 +506,15 @@
                 showRandomDream();
                 if (window.innerWidth <= 768) closeSidebar();
             };
+            document.getElementById('cancelRegisterBtn').onclick = closeRegisterModal;
+            document.getElementById('confirmRegisterBtn').onclick = handleRegister;
+            
             window.onclick = (e) => {
                 if (e.target === document.getElementById('favoriteModal')) {
                     document.getElementById('favoriteModal').style.display = 'none';
+                }
+                if (e.target === document.getElementById('registerModal')) {
+                    closeRegisterModal();
                 }
             };
         });
