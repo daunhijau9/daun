@@ -1,1 +1,532 @@
 
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Buku Mimpi - Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Poppins', system-ui;
+            background: linear-gradient(145deg, #1e2a3a 0%, #0f1724 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+        }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: rgba(255,248,235,0.95);
+            border-radius: 2rem;
+            overflow: hidden;
+            margin: 1rem;
+            box-shadow: 0 25px 40px rgba(0,0,0,0.3);
+        }
+        .header {
+            background: #2c1e12;
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 3px solid #e6b450;
+            position: relative;
+        }
+        .header h1 { font-size: 1.6rem; color: #fae67a; }
+        .header p { color: #ecd9b4; font-size: 0.8rem; }
+        .user-bar {
+            position: absolute;
+            top: 0.8rem;
+            right: 1rem;
+            background: #4a3727;
+            color: #ffefcf;
+            padding: 0.2rem 0.8rem;
+            border-radius: 2rem;
+            font-size: 0.7rem;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .user-bar button {
+            background: #aa6f5e;
+            border: none;
+            padding: 0.2rem 0.6rem;
+            border-radius: 1rem;
+            color: white;
+            cursor: pointer;
+        }
+        .tab-nav {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            background: #3e2a1f;
+            gap: 0.25rem;
+            padding: 0.6rem 0.6rem 0 0.6rem;
+        }
+        .tab-btn {
+            background: #5e422b;
+            border: none;
+            padding: 0.5rem 0.9rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #ffefcf;
+            cursor: pointer;
+            border-radius: 1rem 1rem 0 0;
+            white-space: nowrap;
+        }
+        .tab-btn.active { background: #ffefcf; color: #3e2a1f; }
+        .tab-content-container {
+            background: #ffefcf;
+            padding: 1rem;
+            min-height: 300px;
+        }
+        .tab-pane { display: none; }
+        .tab-pane.active-pane { display: block; }
+        .dream-card {
+            background: #fffaf2;
+            border-radius: 1.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #f3dfbc;
+        }
+        .dream-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #4b2e1a;
+            border-left: 5px solid #f5b042;
+            padding-left: 0.7rem;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+        }
+        .dream-description {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            background: #fff6ea;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            white-space: pre-wrap;
+            margin-bottom: 1rem;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .voice-btn, .edit-btn, .delete-btn {
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .voice-btn { background: #2c5f7a; color: white; }
+        .edit-btn { background: #f5b042; color: #2c1e12; }
+        .delete-btn { background: #aa6f5e; color: white; }
+        .admin-panel {
+            background: #f7efdf;
+            border-top: 3px solid #d6b575;
+            padding: 1rem;
+        }
+        .admin-panel h3 { color: #4b2e1a; margin-bottom: 0.6rem; }
+        .button-group { display: flex; gap: 10px; margin-bottom: 0.8rem; }
+        .form-group { margin-bottom: 0.7rem; }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #5a3e28;
+            font-size: 0.85rem;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.6rem;
+            border-radius: 1rem;
+            border: 1px solid #e2caa4;
+            background: #fffdf9;
+            font-family: inherit;
+        }
+        .btn-post, .btn-bulk {
+            background: #8b6946;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-bulk { background: #4a6741; }
+        .footer {
+            background: #2c1e12;
+            text-align: center;
+            padding: 0.7rem;
+            color: #cbae86;
+            font-size: 0.7rem;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #fffaf2;
+            max-width: 600px;
+            width: 90%;
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+        }
+        .modal-content textarea {
+            width: 100%;
+            margin: 0.5rem 0;
+            padding: 0.6rem;
+            border-radius: 1rem;
+            font-family: monospace;
+        }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1rem; }
+        .import-confirm, .save-edit { background: #2c5f7a; color: white; padding: 0.4rem 1rem; border-radius: 2rem; border: none; cursor: pointer; }
+        .import-cancel, .cancel-edit { background: #aa6f5e; color: white; padding: 0.4rem 1rem; border-radius: 2rem; border: none; cursor: pointer; }
+        .empty-message { text-align: center; padding: 2rem; color: #7a5a3a; }
+        @media (max-width: 550px) {
+            .dream-title { font-size: 1.1rem; }
+            .voice-btn, .edit-btn, .delete-btn { padding: 0.4rem 0.8rem; font-size: 0.7rem; }
+            .user-bar { position: static; margin-top: 0.5rem; display: inline-flex; justify-content: center; }
+            .header { padding-bottom: 1rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>👑 BUKU MIMPI - ADMIN</h1>
+        <p>✦ Karangan mimpi-mimpi ✦ Panel Admin ✦</p>
+        <div class="user-bar" id="userBar"></div>
+    </div>
+
+    <div class="tab-nav" id="tabNav"></div>
+    <div class="tab-content-container" id="tabContent">
+        <div class="empty-message">Loading mimpi...</div>
+    </div>
+
+    <div class="admin-panel" id="adminPanel">
+        <h3>✍️ Kolom Admin – Tambah / Edit / Hapus / Import Mimpi ✍️</h3>
+        <div class="button-group">
+            <button class="btn-post" id="postDreamBtn">📌 Post Satu Mimpi</button>
+            <button class="btn-bulk" id="bulkImportBtn">📦 Import Pukal (JSON)</button>
+        </div>
+        <div class="form-group">
+            <label>🌟 Tajuk Mimpi</label>
+            <input type="text" id="newTitle" placeholder="Contoh: Terbang ke Bulan">
+        </div>
+        <div class="form-group">
+            <label>📝 Cerita Mimpi</label>
+            <textarea id="newDesc" rows="3" placeholder="Tuliskan detail mimpimu..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>🏷️ Label pendek (opsional)</label>
+            <input type="text" id="newShort" placeholder="Misal: 'Terbang'" maxlength="14">
+        </div>
+        <p style="font-size:0.7rem;">✅ Data disimpan di Supabase dan dikongsi dengan semua pembaca.</p>
+    </div>
+
+    <div class="footer">
+        🎙️ Suara AI lelaki | Data disimpan di Supabase
+    </div>
+</div>
+
+<!-- MODAL IMPORT -->
+<div id="bulkModal" class="modal">
+    <div class="modal-content">
+        <h3>📦 Import Pukal Mimpi (JSON)</h3>
+        <textarea id="bulkJson" rows="8" placeholder='[{"title":"Mimpi 1","shortLabel":"M1","description":"Cerita..."}]'></textarea>
+        <div class="modal-buttons">
+            <button class="import-cancel" id="cancelBulkBtn">Batal</button>
+            <button class="import-confirm" id="confirmBulkBtn">Import Sekarang</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EDIT -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <h3>✏️ Edit Mimpi</h3>
+        <label>Tajuk</label><input type="text" id="editTitle" style="width:100%; margin:0.3rem 0; padding:0.5rem;">
+        <label>Label pendek</label><input type="text" id="editShort" style="width:100%; margin:0.3rem 0; padding:0.5rem;">
+        <label>Cerita</label><textarea id="editDesc" rows="5" style="width:100%; margin:0.3rem 0; padding:0.5rem;"></textarea>
+        <div class="modal-buttons">
+            <button class="cancel-edit" id="cancelEditBtn">Batal</button>
+            <button class="save-edit" id="saveEditBtn">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // =========== SUPABASE KONFIGURASI ===========
+    const SUPABASE_URL = "https://ofatbleambihhqbboalh.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mYXRibGVhbWJpaGhxYmJvYWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MzgxMzQsImV4cCI6MjA5NjMxNDEzNH0.FOGqpRUa9Ch0Z7Ilk-yoCkKxs1zrKix_2DxdnTz6OXA";
+    
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    // EMAIL ADMIN (sama dengan di login.html)
+    const ADMIN_EMAIL = "admin@example.com";  // <--- GANTI DENGAN EMAIL ANDA
+    
+    let dreamsData = [];
+    let currentActiveId = null;
+    let currentUser = null;
+    let isAdmin = false;
+    let preferredVoice = null;
+    let voicesLoaded = false;
+
+    // =========== AUTH CHECK ===========
+    async function checkAuth() {
+        const { data: { user } } = await supabase.auth.getUser();
+        currentUser = user;
+        const userBar = document.getElementById('userBar');
+        
+        if (user && user.email === ADMIN_EMAIL) {
+            isAdmin = true;
+            userBar.innerHTML = `👤 ${user.email} <button id="logoutBtn">Logout</button>`;
+            document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+                await supabase.auth.signOut();
+                window.location.href = 'login.html';
+            });
+            document.getElementById('adminPanel').style.display = 'block';
+        } else {
+            isAdmin = false;
+            userBar.innerHTML = `⚠️ Bukan admin. <a href="login.html" style="color:#ffefcf;">Login</a>`;
+            document.getElementById('adminPanel').style.display = 'none';
+            if (user) {
+                await supabase.auth.signOut();
+            }
+        }
+        loadDreams();
+    }
+
+    // =========== SUARA AI ===========
+    function initVoice() {
+        const voices = window.speechSynthesis.getVoices();
+        if (!voices.length) return;
+        let male = voices.find(v => v.name.toLowerCase().includes('male') || (v.lang === 'en-US' && v.name.toLowerCase().includes('male')));
+        if (!male) male = voices.find(v => !v.name.toLowerCase().includes('female'));
+        preferredVoice = male || voices[0];
+        voicesLoaded = true;
+    }
+
+    function speak(text, id) {
+        if (!window.speechSynthesis) return;
+        if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'id-ID';
+        utter.rate = 0.9;
+        if (preferredVoice) utter.voice = preferredVoice;
+        else if (!voicesLoaded) {
+            window.speechSynthesis.onvoiceschanged = () => { initVoice(); if(preferredVoice) utter.voice = preferredVoice; window.speechSynthesis.speak(utter); };
+            return;
+        }
+        utter.onstart = () => { let s = document.getElementById(`speech-${id}`); if(s) s.innerText = "🔊 Membaca..."; };
+        utter.onend = () => { let s = document.getElementById(`speech-${id}`); if(s) { s.innerText = "✅ Selesai"; setTimeout(() => { if(s.innerText === "✅ Selesai") s.innerText = "✨ AI siap"; }, 2000); } };
+        window.speechSynthesis.speak(utter);
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+    }
+
+    // =========== RENDER ===========
+    function render() {
+        const tabNav = document.getElementById('tabNav');
+        const tabContent = document.getElementById('tabContent');
+        if (!tabNav || !tabContent) return;
+
+        const active = document.querySelector('.tab-pane.active-pane');
+        if (active) currentActiveId = active.getAttribute('data-pane');
+        else if (dreamsData.length > 0 && !currentActiveId) currentActiveId = dreamsData[0].id;
+
+        tabNav.innerHTML = '';
+        tabContent.innerHTML = '';
+
+        if (dreamsData.length === 0) {
+            tabContent.innerHTML = '<div class="empty-message">✨ Belum ada mimpi. Admin boleh menambah mimpi pertama. ✨</div>';
+            return;
+        }
+
+        dreamsData.forEach((dream, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'tab-btn';
+            if (currentActiveId === dream.id) btn.classList.add('active');
+            btn.setAttribute('data-tab', dream.id);
+            const label = (dream.short_label && dream.short_label.trim()) ? dream.short_label : dream.title.substring(0, 12);
+            btn.innerHTML = `<span>${escapeHtml(label)}</span>`;
+            btn.onclick = () => activateTab(dream.id);
+            tabNav.appendChild(btn);
+
+            const pane = document.createElement('div');
+            pane.className = 'tab-pane';
+            if (currentActiveId === dream.id) pane.classList.add('active-pane');
+            pane.setAttribute('data-pane', dream.id);
+            const adminButtons = isAdmin ? `
+                <button class="edit-btn" data-id="${dream.id}">✏️ Edit</button>
+                <button class="delete-btn" data-id="${dream.id}">🗑️ Hapus</button>
+            ` : '';
+            pane.innerHTML = `
+                <div class="dream-card">
+                    <div class="dream-title">
+                        ${escapeHtml(dream.title)}
+                        <span>📖 mimpi #${idx+1}</span>
+                    </div>
+                    <div class="dream-description">${escapeHtml(dream.description)}</div>
+                    <div class="action-buttons">
+                        <button class="voice-btn" data-id="${dream.id}">🎙️ Baca dengan AI</button>
+                        ${adminButtons}
+                        <span class="speech-status" id="speech-${dream.id}">✨ AI siap</span>
+                    </div>
+                </div>
+            `;
+            tabContent.appendChild(pane);
+        });
+
+        document.querySelectorAll('.voice-btn').forEach(btn => {
+            btn.onclick = () => { const d = dreamsData.find(x => x.id === btn.getAttribute('data-id')); if(d) speak(d.description, d.id); };
+        });
+        
+        if (isAdmin) {
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.onclick = () => openEdit(btn.getAttribute('data-id'));
+            });
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.onclick = () => { if(confirm("Padam mimpi ini?")) deleteDream(btn.getAttribute('data-id')); };
+            });
+        }
+    }
+
+    function activateTab(id) {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            if (btn.getAttribute('data-tab') === id) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+            if (pane.getAttribute('data-pane') === id) pane.classList.add('active-pane');
+            else pane.classList.remove('active-pane');
+        });
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        currentActiveId = id;
+    }
+
+    // =========== CRUD SUPABASE ===========
+    async function loadDreams() {
+        const { data, error } = await supabase
+            .from('dreams')
+            .select('*')
+            .order('created_at', { ascending: true });
+        
+        if (error) {
+            console.error("Error:", error);
+            dreamsData = [];
+        } else {
+            dreamsData = data || [];
+        }
+        render();
+        if (dreamsData.length > 0 && !currentActiveId) activateTab(dreamsData[0].id);
+    }
+
+    async function addDream(title, desc, short) {
+        if (!title.trim() || !desc.trim()) throw new Error("Tajuk dan cerita wajib");
+        const newId = Date.now().toString() + "_" + Math.random().toString(36).substr(2, 6);
+        const { error } = await supabase.from('dreams').insert([{
+            id: newId,
+            title: title.trim(),
+            short_label: short.trim() || title.trim().substring(0, 12),
+            description: desc.trim(),
+            created_at: new Date().toISOString()
+        }]);
+        if (error) throw new Error(error.message);
+        await loadDreams();
+        activateTab(newId);
+    }
+
+    async function updateDream(id, title, short, desc) {
+        const { error } = await supabase
+            .from('dreams')
+            .update({ title, short_label: short, description: desc })
+            .eq('id', id);
+        if (error) throw new Error(error.message);
+        await loadDreams();
+        activateTab(id);
+    }
+
+    async function deleteDream(id) {
+        const { error } = await supabase.from('dreams').delete().eq('id', id);
+        if (error) throw new Error(error.message);
+        await loadDreams();
+        if (dreamsData.length > 0) activateTab(dreamsData[0].id);
+    }
+
+    async function bulkImport(dreamsArray) {
+        if (!Array.isArray(dreamsArray) || dreamsArray.length === 0) throw new Error("Array kosong");
+        const newDreams = [];
+        for (let item of dreamsArray) {
+            if (item.title && item.description) {
+                newDreams.push({
+                    id: Date.now().toString() + "_" + Math.random().toString(36).substr(2, 6) + "_" + newDreams.length,
+                    title: item.title.trim(),
+                    short_label: (item.shortLabel?.trim()) || item.title.trim().substring(0, 12),
+                    description: item.description.trim(),
+                    created_at: new Date().toISOString()
+                });
+            }
+        }
+        if (newDreams.length === 0) throw new Error("Tiada data sah");
+        const { error } = await supabase.from('dreams').insert(newDreams);
+        if (error) throw new Error(error.message);
+        await loadDreams();
+        return newDreams.length;
+    }
+
+    // =========== HANDLER EDIT ===========
+    let editingId = null;
+    function openEdit(id) {
+        const dream = dreamsData.find(d => d.id === id);
+        if (!dream) return;
+        editingId = id;
+        document.getElementById('editTitle').value = dream.title;
+        document.getElementById('editShort').value = dream.short_label || '';
+        document.getElementById('editDesc').value = dream.description;
+        document.getElementById('editModal').style.display = 'flex';
+    }
+    function closeEdit() { document.getElementById('editModal').style.display = 'none'; editingId = null; }
+    async function saveEdit() {
+        if (!editingId) return;
+        const newTitle = document.getElementById('editTitle').value.trim();
+        const newShort = document.getElementById('editShort').value.trim();
+        const newDesc = document.getElementById('editDesc').value.trim();
+        if (!newTitle || !newDesc) { alert("Tajuk dan cerita wajib!"); return; }
+        await updateDream(editingId, newTitle, newShort || newTitle.substring(0,12), newDesc);
+        closeEdit();
+    }
+
+    // =========== HANDLER BULK ===========
+    function openBulk() { document.getElementById('bulkModal').style.display = 'flex'; }
+    function closeBulk() { document.getElementById('bulkModal').style.display = 'none'; }
+    async function confirmBulk() {
+        const json = document.getElementById('bulkJson').value.trim();
+        if (!json) return alert("Masukkan JSON");
+        try {
+            const parsed = JSON.parse(json);
+            const count = await bulkImport(parsed);
+            document.getElementById('bulkJson').value = '';
+            closeBulk();
+            alert(`Berjaya import ${count} mimpi.`);
+        } catch(e) { alert("JSON tidak sah: " + e.message); }
+    }
+
+    // =========== INIT ===========
+    window.addEventListener('load', () => {
+        checkAuth();
+        if (window.speechSynthesis) {
+            if (window.speechSynthesis.getVoices().length) initVoice();
+            else
