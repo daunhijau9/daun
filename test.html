@@ -1,0 +1,27 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <button onclick="testRegister()">Uji Pendaftaran</button>
+    <div id="result"></div>
+    <script>
+        const supabase = window.supabase.createClient(
+            "https://zwhaimnotbtzpgyzmla.supabase.co",
+            "sb_publishable_ZNq1-6DMkDQ3dyn8dO0Byg_fD3EbI4Q"
+        );
+        async function testRegister() {
+            const username = "testuser" + Date.now();
+            const password = "1234";
+            const { data, error } = await supabase.from('users').insert([{ username, password }]);
+            if (error) {
+                document.getElementById('result').innerHTML = "❌ Gagal: " + error.message;
+            } else {
+                document.getElementById('result').innerHTML = "✅ Berjaya! Username: " + username;
+            }
+        }
+    </script>
+</body>
+</html>
