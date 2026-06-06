@@ -31,30 +31,8 @@
         }
         .header h1 { font-size: 1.6rem; color: #fae67a; }
         .header p { color: #ecd9b4; font-size: 0.8rem; margin-top: 0.3rem; }
-        .tabs {
-            display: flex;
-            background: #3e2a1f;
-        }
-        .tab {
-            flex: 1;
-            text-align: center;
-            padding: 0.8rem;
-            background: #5e422b;
-            color: #ffefcf;
-            cursor: pointer;
-            font-weight: bold;
-            border: none;
-        }
-        .tab.active {
-            background: #ffefcf;
-            color: #3e2a1f;
-        }
         .form-panel {
             padding: 1.5rem;
-            display: none;
-        }
-        .form-panel.active {
-            display: block;
         }
         .form-group {
             margin-bottom: 1rem;
@@ -103,24 +81,33 @@
             font-size: 0.7rem;
             border-top: 1px solid #e2caa4;
         }
+        .info {
+            background: #fff0d0;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #7a5a3a;
+        }
     </style>
 </head>
 <body>
 <div class="login-container">
     <div class="header">
         <h1>👑 BUKU MIMPI</h1>
-        <p>Panel Admin - Login / Daftar</p>
-    </div>
-    <div class="tabs">
-        <button class="tab active" id="loginTab">Log Masuk</button>
-        <button class="tab" id="registerTab">Daftar Akaun</button>
+        <p>Panel Admin - Log Masuk</p>
     </div>
     
-    <!-- Panel Login -->
-    <div class="form-panel active" id="loginPanel">
+    <div class="form-panel">
+        <div class="info">
+            🔐 Akaun Tetap Sahaja<br>
+            <strong>Username: admin</strong><br>
+            <strong>Password: 68900</strong>
+        </div>
         <div class="form-group">
             <label>👤 Nama Pengguna</label>
-            <input type="text" id="loginUsername" placeholder="contoh: admin">
+            <input type="text" id="loginUsername" placeholder="admin">
         </div>
         <div class="form-group">
             <label>🔒 Kata Laluan</label>
@@ -130,49 +117,16 @@
         <div id="loginMessage" class="message"></div>
     </div>
     
-    <!-- Panel Daftar -->
-    <div class="form-panel" id="registerPanel">
-        <div class="form-group">
-            <label>👤 Nama Pengguna</label>
-            <input type="text" id="regUsername" placeholder="contoh: admin">
-        </div>
-        <div class="form-group">
-            <label>🔒 Kata Laluan (min 4 huruf)</label>
-            <input type="password" id="regPassword" placeholder="****">
-        </div>
-        <button id="doRegisterBtn">Daftar Akaun</button>
-        <div id="registerMessage" class="message"></div>
-    </div>
     <div class="footer">
-        🔐 Sistem login sendiri | Data disimpan dalam pelayar
+        🔐 Hanya admin tetap yang dibenarkan
     </div>
 </div>
 
 <script>
-    // =========== STORAGE KEYS ===========
-    const USERS_KEY = "buku_mimpi_users";
+    // =========== AKAUN TETAP ===========
+    const FIXED_USERNAME = "admin";
+    const FIXED_PASSWORD = "68900";
     const SESSION_KEY = "buku_mimpi_session";
-    
-    // Data admin lalai (jika tiada pengguna)
-    const defaultUsers = [
-        { username: "admin", password: "admin123" }
-    ];
-    
-    // Muat senarai pengguna
-    function loadUsers() {
-        const stored = localStorage.getItem(USERS_KEY);
-        if (stored) {
-            return JSON.parse(stored);
-        } else {
-            localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers));
-            return defaultUsers;
-        }
-    }
-    
-    // Simpan senarai pengguna
-    function saveUsers(users) {
-        localStorage.setItem(USERS_KEY, JSON.stringify(users));
-    }
     
     // Semak session
     function checkSession() {
@@ -202,10 +156,7 @@
             return;
         }
         
-        const users = loadUsers();
-        const user = users.find(u => u.username === username && u.password === password);
-        
-        if (user) {
+        if (username === FIXED_USERNAME && password === FIXED_PASSWORD) {
             localStorage.setItem(SESSION_KEY, "logged_in");
             localStorage.setItem("buku_mimpi_current_user", username);
             showMessage(document.getElementById('loginMessage'), 'Login berjaya! Mengalihkan...', false);
@@ -215,56 +166,6 @@
         } else {
             showMessage(document.getElementById('loginMessage'), 'Nama pengguna atau kata laluan salah');
         }
-    });
-    
-    // =========== REGISTER ===========
-    document.getElementById('doRegisterBtn').addEventListener('click', () => {
-        const username = document.getElementById('regUsername').value.trim();
-        const password = document.getElementById('regPassword').value;
-        
-        if (!username || !password) {
-            showMessage(document.getElementById('registerMessage'), 'Sila isi nama pengguna dan kata laluan');
-            return;
-        }
-        if (password.length < 4) {
-            showMessage(document.getElementById('registerMessage'), 'Kata laluan minimum 4 huruf');
-            return;
-        }
-        
-        const users = loadUsers();
-        
-        // Semak jika username sudah wujud
-        if (users.find(u => u.username === username)) {
-            showMessage(document.getElementById('registerMessage'), 'Nama pengguna sudah wujud!');
-            return;
-        }
-        
-        // Tambah pengguna baru
-        users.push({ username, password });
-        saveUsers(users);
-        
-        showMessage(document.getElementById('registerMessage'), 'Pendaftaran berjaya! Sila login.', false);
-        document.getElementById('regUsername').value = '';
-        document.getElementById('regPassword').value = '';
-        
-        // Tukar ke tab login selepas 1 saat
-        setTimeout(() => {
-            document.getElementById('loginTab').click();
-        }, 1500);
-    });
-    
-    // =========== TUKAR TAB ===========
-    document.getElementById('loginTab').addEventListener('click', () => {
-        document.getElementById('loginTab').classList.add('active');
-        document.getElementById('registerTab').classList.remove('active');
-        document.getElementById('loginPanel').classList.add('active');
-        document.getElementById('registerPanel').classList.remove('active');
-    });
-    document.getElementById('registerTab').addEventListener('click', () => {
-        document.getElementById('registerTab').classList.add('active');
-        document.getElementById('loginTab').classList.remove('active');
-        document.getElementById('registerPanel').classList.add('active');
-        document.getElementById('loginPanel').classList.remove('active');
     });
     
     // Semak jika sudah login
