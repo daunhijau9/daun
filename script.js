@@ -1,37 +1,52 @@
-// script.js - Fungsi bersama untuk semua halaman
+// script.js - Menggunakan Supabase
 
-// Kunci storage
-const DREAMS_KEY = "buku_mimpi_data";
-const USERS_KEY = "buku_mimpi_users";
+// =========== KONFIGURASI SUPABASE ===========
+const SUPABASE_URL = "https://ofatbleambihhqbboalh.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mYXRibGVhbWJpaGhxYmJvYWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MzgxMzQsImV4cCI6MjA5NjMxNDEzNH0.FOGqpRUa9Ch0Z7Ilk-yoCkKxs1zrKix_2DxdnTz6OXA";
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Kunci untuk session (tetap di localStorage)
 const SESSION_KEY = "buku_mimpi_session";
-const FAVORITES_KEY = "buku_mimpi_favorites";
-
-// Akaun admin tetap
 const ADMIN_USERNAME = "admin";
-const ADMIN_PASSWORD = "68900";
 
-// =========== FUNGSI PENGGUNA ===========
-function loadUsers() {
-    const stored = localStorage.getItem(USERS_KEY);
-    if (stored) {
-        return JSON.parse(stored);
-    } else {
-        const defaultUsers = [{ username: ADMIN_USERNAME, password: ADMIN_PASSWORD }];
-        localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers));
-        return defaultUsers;
-    }
+// =========== FUNGSI PENGGUNA (Supabase) ===========
+async function loadUsers() {
+    const { data, error } = await supabase.from('users').select('*');
+    if (error) throw error;
+    return data;
 }
 
-function saveUsers(users) {
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+async function saveUsers(users) {
+    // Guna upsert untuk kemas kini (tapi biasanya kita gunakan fungsi register/login berasingan)
+    // Untuk ringkas, kita akan gunakan fungsi register dan login khusus.
 }
 
-function isLoggedIn() {
-    return localStorage.getItem(SESSION_KEY) === "logged_in";
+async function registerUser(username, password) {
+    // Semak jika username sudah wujud
+    const { data: existing } = await supabase.from('users').select('username').eq('username', username);
+    if (existing && existing.length > 0) return { success: false, message: "Nama pengguna sudah wujud!" };
+    if (username === ADMIN_USERNAME) return { success: false, message: "Nama pengguna ini tidak tersedia" };
+    if (password.length < 4) return { success: false, message: "Kata laluan minimum 4 huruf" };
+    
+    const { error } = await supabase.from('users').insert([{ username, password, created_at: new Date().toISOString() }]);
+    if (error) return { success: false, message: error.message };
+    return { success: true, message: "Pendaftaran berjaya! Sila login." };
 }
 
-function getCurrentUser() {
+async function loginUser(username, password) {
+    const { data, error } = await supabase.from('users').select('*').eq('username', username).eq('password', password);
+    if (error || !data || data.length === 0) return false;
+    return true;
+}
+
+async function getCurrentUserFromSession() {
     return localStorage.getItem("buku_mimpi_current_user");
+}
+
+function setSession(username) {
+    localStorage.setItem(SESSION_KEY, "logged_in");
+    localStorage.setItem("buku_mimpi_current_user", username);
 }
 
 function logout() {
@@ -40,76 +55,65 @@ function logout() {
     window.location.href = "index.html";
 }
 
-// =========== FUNGSI MIMPI ===========
-function loadDreams() {
-    const stored = localStorage.getItem(DREAMS_KEY);
-    if (stored) {
-        return JSON.parse(stored);
-    }
-    return [];
+function isLoggedIn() {
+    return localStorage.getItem(SESSION_KEY) === "logged_in";
 }
 
-function saveDreams(dreams) {
-    localStorage.setItem(DREAMS_KEY, JSON.stringify(dreams));
+// =========== FUNGSI MIMPI (Supabase) ===========
+async function loadDreams() {
+    const { data, error } = await supabase.from('dreams').select('*').order('created_at', { ascending: true });
+    if (error) return [];
+    return data;
 }
 
-function addDream(title, description, shortLabel) {
-    const dreams = loadDreams();
+async function addDream(title, description, shortLabel) {
     const newId = Date.now().toString() + "_" + Math.random().toString(36).substr(2, 6);
-    dreams.push({
+    const { error } = await supabase.from('dreams').insert([{
         id: newId,
         title: title.trim(),
-        shortLabel: shortLabel.trim() || title.trim().substring(0, 12),
+        short_label: shortLabel.trim() || title.trim().substring(0, 12),
         description: description.trim(),
-        createdAt: new Date().toISOString()
-    });
-    saveDreams(dreams);
+        created_at: new Date().toISOString()
+    }]);
+    if (error) throw error;
     return newId;
 }
 
-function updateDream(id, title, shortLabel, description) {
-    const dreams = loadDreams();
-    const index = dreams.findIndex(d => d.id === id);
-    if (index !== -1) {
-        dreams[index] = { ...dreams[index], title, shortLabel, description };
-        saveDreams(dreams);
-    }
+async function updateDream(id, title, shortLabel, description) {
+    const { error } = await supabase.from('dreams').update({
+        title, short_label: shortLabel, description
+    }).eq('id', id);
+    if (error) throw error;
 }
 
-function deleteDream(id) {
-    let dreams = loadDreams();
-    dreams = dreams.filter(d => d.id !== id);
-    saveDreams(dreams);
+async function deleteDream(id) {
+    const { error } = await supabase.from('dreams').delete().eq('id', id);
+    if (error) throw error;
 }
 
-// =========== FUNGSI FAVORIT ===========
-function getFavorites() {
-    const stored = localStorage.getItem(FAVORITES_KEY);
-    if (stored) {
-        return JSON.parse(stored);
-    }
-    return [];
+// =========== FUNGSI FAVORIT (Supabase) ===========
+async function getFavorites(username) {
+    const { data, error } = await supabase.from('favorites').select('dream_id').eq('username', username);
+    if (error) return [];
+    return data.map(f => f.dream_id);
 }
 
-function addFavorite(dreamId) {
-    let favorites = getFavorites();
-    if (!favorites.includes(dreamId)) {
-        favorites.push(dreamId);
-        localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-    }
+async function addFavorite(username, dreamId) {
+    const { error } = await supabase.from('favorites').insert([{ username, dream_id: dreamId }]);
+    if (error && error.code !== '23505') throw error; // ignore duplicate
 }
 
-function removeFavorite(dreamId) {
-    let favorites = getFavorites();
-    favorites = favorites.filter(id => id !== dreamId);
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+async function removeFavorite(username, dreamId) {
+    const { error } = await supabase.from('favorites').delete().eq('username', username).eq('dream_id', dreamId);
+    if (error) throw error;
 }
 
-function isFavorite(dreamId) {
-    return getFavorites().includes(dreamId);
+async function isFavorite(username, dreamId) {
+    const favorites = await getFavorites(username);
+    return favorites.includes(dreamId);
 }
 
-// =========== SUARA AI ===========
+// =========== SUARA AI (sama seperti sebelumnya) ===========
 let preferredVoice = null;
 let voicesLoaded = false;
 
