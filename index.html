@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Buku Mimpi - Koleksi Mimpi</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Toast notification */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -21,80 +21,34 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             animation: fadeInUp 0.3s ease;
         }
-        .toast a {
-            color: #fae67a;
-            text-decoration: underline;
-            margin-left: 8px;
-        }
+        .toast a { color: #fae67a; text-decoration: underline; margin-left: 8px; }
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
-        
-        /* Modal Daftar */
-        .register-modal .modal-content {
-            max-width: 400px;
-        }
-        .register-modal .form-group {
-            margin-bottom: 1rem;
-        }
-        .register-modal .form-group label {
-            display: block;
-            font-weight: 600;
-            color: #5a3e28;
-            margin-bottom: 0.3rem;
-            font-size: 0.85rem;
-        }
-        .register-modal .form-group input {
-            width: 100%;
-            padding: 0.7rem;
-            border-radius: 1rem;
-            border: 1px solid #e2caa4;
-            background: #fffdf9;
-            font-family: inherit;
-        }
+        .register-modal .modal-content { max-width: 400px; }
+        .register-modal .form-group { margin-bottom: 1rem; }
+        .register-modal .form-group label { display: block; font-weight: 600; color: #5a3e28; margin-bottom: 0.3rem; font-size: 0.85rem; }
+        .register-modal .form-group input { width: 100%; padding: 0.7rem; border-radius: 1rem; border: 1px solid #e2caa4; background: #fffdf9; font-family: inherit; }
     </style>
 </head>
 <body>
-    <!-- BUTANG HAMBURGER (MOBILE) -->
     <button class="hamburger" id="hamburgerBtn">☰</button>
     <div class="overlay" id="overlay"></div>
-
-    <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h2>📖 BUKU MIMPI</h2>
-            <p>Karangan mimpi-mimpi</p>
-        </div>
+        <div class="sidebar-header"><h2>📖 BUKU MIMPI</h2><p>Karangan mimpi-mimpi</p></div>
         <div class="sidebar-menu">
-            <div class="menu-item active" id="homeLink">
-                <i>🏠</i> <span>Home</span>
-            </div>
-            <div class="menu-item" id="registerMenuLink">
-                <i>📝</i> <span>Daftar Akaun</span>
-            </div>
-            <div class="menu-item" id="loginLogoutLink">
-                <i>🔑</i> <span id="loginLogoutText">Login</span>
-            </div>
-            <div class="menu-item" id="favoriteLink">
-                <i>⭐</i> <span>Favorit Saya</span>
-            </div>
+            <div class="menu-item active" id="homeLink"><i>🏠</i> <span>Home</span></div>
+            <div class="menu-item" id="registerMenuLink"><i>📝</i> <span>Daftar Akaun</span></div>
+            <div class="menu-item" id="loginLogoutLink"><i>🔑</i> <span id="loginLogoutText">Login</span></div>
+            <div class="menu-item" id="favoriteLink"><i>⭐</i> <span>Favorit Saya</span></div>
         </div>
-        <div class="sidebar-footer">
-            <p>✦ Setiap mimpi ada kisahnya ✦</p>
-        </div>
+        <div class="sidebar-footer"><p>✦ Setiap mimpi ada kisahnya ✦</p></div>
     </div>
 
-    <!-- KANDUNGAN UTAMA -->
     <div class="main-content">
         <div class="dream-container">
-            <div class="dream-card" id="dreamCard">
+            <div class="dream-card">
                 <div class="counter" id="counter">Memuatkan...</div>
                 <div class="dream-title" id="dreamTitle">-</div>
                 <div class="dream-description" id="dreamDescription">-</div>
@@ -106,367 +60,37 @@
                 <div class="speech-status" id="speechStatus">✨ AI siap membaca</div>
             </div>
         </div>
-
-        <!-- SENARAI SEMUA MIMPI -->
         <div class="dream-list-section">
-            <h3>
-                📜 Senarai Semua Mimpi
-                <input type="text" id="searchInput" class="search-box" placeholder="Cari mimpi...">
-            </h3>
-            <div class="dream-list" id="dreamList">
-                <div class="empty-message">Loading mimpi...</div>
-            </div>
+            <h3>📜 Senarai Semua Mimpi <input type="text" id="searchInput" class="search-box" placeholder="Cari mimpi..."></h3>
+            <div class="dream-list" id="dreamList"><div class="empty-message">Loading mimpi...</div></div>
         </div>
-        
-        <div class="footer">
-            🎙️ Suara AI lelaki | Koleksi ratusan mimpi
-        </div>
+        <div class="footer">🎙️ Suara AI lelaki | Koleksi dikongsi di awan (Supabase)</div>
     </div>
 
-    <!-- MODAL FAVORIT -->
-    <div id="favoriteModal" class="modal">
-        <div class="modal-content">
-            <h3>⭐ Favorit Saya</h3>
-            <div id="favoriteList"></div>
-            <div class="modal-buttons">
-                <button class="btn" id="closeFavoriteModal">Tutup</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL DAFTAR (REGISTER) -->
-    <div id="registerModal" class="modal register-modal">
-        <div class="modal-content">
-            <h3>📝 Daftar Akaun Baru</h3>
-            <div class="form-group">
-                <label>👤 Nama Pengguna</label>
-                <input type="text" id="regUsername" placeholder="Pilih nama pengguna">
-            </div>
-            <div class="form-group">
-                <label>🔒 Kata Laluan (min 4 huruf)</label>
-                <input type="password" id="regPassword" placeholder="****">
-            </div>
-            <div class="form-group">
-                <label>🔒 Ulang Kata Laluan</label>
-                <input type="password" id="regConfirmPassword" placeholder="****">
-            </div>
-            <div class="modal-buttons">
-                <button class="btn btn-small" id="cancelRegisterBtn">Batal</button>
-                <button class="btn btn-small" id="confirmRegisterBtn">Daftar</button>
-            </div>
-            <div id="registerMessage" style="margin-top: 1rem; font-size: 0.8rem; text-align: center;"></div>
-        </div>
-    </div>
+    <div id="favoriteModal" class="modal"><div class="modal-content"><h3>⭐ Favorit Saya</h3><div id="favoriteList"></div><div class="modal-buttons"><button class="btn" id="closeFavoriteModal">Tutup</button></div></div></div>
+    <div id="registerModal" class="modal register-modal"><div class="modal-content"><h3>📝 Daftar Akaun Baru</h3><div class="form-group"><label>👤 Nama Pengguna</label><input type="text" id="regUsername" placeholder="Pilih nama pengguna"></div><div class="form-group"><label>🔒 Kata Laluan (min 4 huruf)</label><input type="password" id="regPassword" placeholder="****"></div><div class="form-group"><label>🔒 Ulang Kata Laluan</label><input type="password" id="regConfirmPassword" placeholder="****"></div><div class="modal-buttons"><button class="btn btn-small" id="cancelRegisterBtn">Batal</button><button class="btn btn-small" id="confirmRegisterBtn">Daftar</button></div><div id="registerMessage" style="margin-top:1rem; text-align:center;"></div></div></div>
 
     <script src="script.js"></script>
     <script>
         let dreamsData = [];
         let currentDream = null;
         let searchTerm = '';
-        
-        // =========== TOAST NOTIFICATION ===========
-        function showToast(message, linkText, linkUrl) {
-            const existingToast = document.querySelector('.toast');
-            if (existingToast) existingToast.remove();
-            
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            if (linkText && linkUrl) {
-                toast.innerHTML = `${message} <a href="${linkUrl}">${linkText}</a>`;
+        let currentUser = null;
+
+        async function loadUserSession() {
+            if (isLoggedIn()) {
+                currentUser = localStorage.getItem("buku_mimpi_current_user");
+                updateSidebar();
+                await loadAllData();
             } else {
-                toast.innerHTML = message;
-            }
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.remove();
-            }, 4000);
-        }
-        
-        // =========== SEMAK LOGIN ===========
-        function isLoggedIn() {
-            return localStorage.getItem(SESSION_KEY) === "logged_in";
-        }
-        
-        // =========== FUNGSI SIDEBAR ===========
-        function closeSidebar() {
-            document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('overlay').classList.remove('active');
-        }
-        
-        function openSidebar() {
-            document.getElementById('sidebar').classList.add('open');
-            document.getElementById('overlay').classList.add('active');
-        }
-        
-        document.getElementById('hamburgerBtn').onclick = openSidebar;
-        document.getElementById('overlay').onclick = closeSidebar;
-        
-        // =========== FUNGSI PENGGUNA ===========
-        function loadUsersData() {
-            const stored = localStorage.getItem(USERS_KEY);
-            if (stored) {
-                return JSON.parse(stored);
-            } else {
-                const defaultUsers = [{ username: ADMIN_USERNAME, password: ADMIN_PASSWORD, createdAt: new Date().toISOString() }];
-                localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers));
-                return defaultUsers;
+                currentUser = null;
+                updateSidebar();
+                await loadAllData();
             }
         }
-        
-        function saveUsersData(users) {
-            localStorage.setItem(USERS_KEY, JSON.stringify(users));
-        }
-        
-        function registerUser(username, password) {
-            const users = loadUsersData();
-            
-            // Semak jika username sudah wujud
-            if (users.find(u => u.username === username)) {
-                return { success: false, message: "Nama pengguna sudah wujud!" };
-            }
-            if (username === ADMIN_USERNAME) {
-                return { success: false, message: "Nama pengguna ini tidak tersedia" };
-            }
-            if (password.length < 4) {
-                return { success: false, message: "Kata laluan minimum 4 huruf" };
-            }
-            
-            users.push({ 
-                username: username, 
-                password: password, 
-                createdAt: new Date().toISOString() 
-            });
-            saveUsersData(users);
-            return { success: true, message: "Pendaftaran berjaya! Sila login." };
-        }
-        
-        // =========== MODAL DAFTAR ===========
-        function openRegisterModal() {
-            document.getElementById('regUsername').value = '';
-            document.getElementById('regPassword').value = '';
-            document.getElementById('regConfirmPassword').value = '';
-            document.getElementById('registerMessage').innerHTML = '';
-            document.getElementById('registerModal').style.display = 'flex';
-            if (window.innerWidth <= 768) closeSidebar();
-        }
-        
-        function closeRegisterModal() {
-            document.getElementById('registerModal').style.display = 'none';
-        }
-        
-        function handleRegister() {
-            const username = document.getElementById('regUsername').value.trim();
-            const password = document.getElementById('regPassword').value;
-            const confirmPassword = document.getElementById('regConfirmPassword').value;
-            
-            if (!username || !password) {
-                document.getElementById('registerMessage').innerHTML = '<span style="color: #aa2e2e;">Sila isi semua ruangan</span>';
-                return;
-            }
-            if (password !== confirmPassword) {
-                document.getElementById('registerMessage').innerHTML = '<span style="color: #aa2e2e;">Kata laluan tidak sama</span>';
-                return;
-            }
-            
-            const result = registerUser(username, password);
-            if (result.success) {
-                document.getElementById('registerMessage').innerHTML = `<span style="color: #2e6a2e;">${result.message}</span>`;
-                setTimeout(() => {
-                    closeRegisterModal();
-                    showToast('✅ Pendaftaran berjaya! Sila login.', 'Login', 'login.html');
-                }, 1500);
-            } else {
-                document.getElementById('registerMessage').innerHTML = `<span style="color: #aa2e2e;">${result.message}</span>`;
-            }
-        }
-        
-        // =========== UPDATE SIDEBAR STATE ===========
-        function updateSidebar() {
-            const loggedIn = isLoggedIn();
-            const loginLogoutText = document.getElementById('loginLogoutText');
-            const loginLogoutLink = document.getElementById('loginLogoutLink');
-            const registerMenuLink = document.getElementById('registerMenuLink');
-            
-            if (loggedIn) {
-                loginLogoutText.innerHTML = 'Logout';
-                loginLogoutLink.onclick = () => {
-                    localStorage.removeItem(SESSION_KEY);
-                    localStorage.removeItem("buku_mimpi_current_user");
-                    closeSidebar();
-                    window.location.href = "index.html";
-                };
-                // Sembunyikan menu daftar jika sudah login
-                if (registerMenuLink) registerMenuLink.style.display = 'none';
-                
-                const currentUser = localStorage.getItem("buku_mimpi_current_user");
-                if (currentUser === 'admin') {
-                    if (!document.getElementById('adminLink')) {
-                        const adminLink = document.createElement('div');
-                        adminLink.id = 'adminLink';
-                        adminLink.className = 'menu-item';
-                        adminLink.innerHTML = '<i>👑</i> <span>Panel Admin</span>';
-                        adminLink.onclick = () => {
-                            closeSidebar();
-                            window.location.href = 'dashboard.html';
-                        };
-                        document.querySelector('.sidebar-menu').appendChild(adminLink);
-                    }
-                }
-            } else {
-                loginLogoutText.innerHTML = 'Login';
-                loginLogoutLink.onclick = () => {
-                    closeSidebar();
-                    window.location.href = 'login.html';
-                };
-                // Tunjukkan menu daftar jika belum login
-                if (registerMenuLink) registerMenuLink.style.display = 'flex';
-                
-                const adminLink = document.getElementById('adminLink');
-                if (adminLink) adminLink.remove();
-            }
-        }
-        
-        // =========== PAPAR MIMPI ===========
-        function displayDream(dream) {
-            if (!dream) return;
-            currentDream = dream;
-            document.getElementById('dreamTitle').innerHTML = escapeHtml(dream.title);
-            document.getElementById('dreamDescription').innerHTML = escapeHtml(dream.description);
-            document.getElementById('counter').innerHTML = `📖 ${dream.title}`;
-            document.getElementById('speechStatus').innerHTML = "✨ AI siap membaca";
-            
-            const favBtn = document.getElementById('favoriteBtn');
-            if (!isLoggedIn()) {
-                favBtn.innerHTML = '⭐ Simpan Favorit';
-                favBtn.classList.remove('saved');
-            } else if (isFavorite(dream.id)) {
-                favBtn.innerHTML = '⭐ Sudah Favorit';
-                favBtn.classList.add('saved');
-            } else {
-                favBtn.innerHTML = '⭐ Simpan Favorit';
-                favBtn.classList.remove('saved');
-            }
-            
-            if (window.speechSynthesis) window.speechSynthesis.cancel();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-        
-        function showRandomDream() {
-            if (dreamsData.length === 0) {
-                document.getElementById('dreamTitle').innerHTML = "✨ Belum Ada Mimpi ✨";
-                document.getElementById('dreamDescription').innerHTML = "Sila tunggu admin menambah mimpi.";
-                document.getElementById('counter').innerHTML = "0 mimpi dalam koleksi";
-                return;
-            }
-            const randomIndex = Math.floor(Math.random() * dreamsData.length);
-            displayDream(dreamsData[randomIndex]);
-        }
-        
-        // =========== SENARAI SEMUA MIMPI ===========
-        function renderDreamList() {
-            const dreamListDiv = document.getElementById('dreamList');
-            let filteredDreams = dreamsData;
-            
-            if (searchTerm) {
-                filteredDreams = dreamsData.filter(d => 
-                    d.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    (d.shortLabel && d.shortLabel.toLowerCase().includes(searchTerm.toLowerCase()))
-                );
-            }
-            
-            if (filteredDreams.length === 0) {
-                dreamListDiv.innerHTML = '<div class="empty-message">✨ Tiada mimpi ditemui ✨</div>';
-                return;
-            }
-            
-            dreamListDiv.innerHTML = '';
-            filteredDreams.forEach((dream, idx) => {
-                const item = document.createElement('div');
-                item.className = 'dream-list-item';
-                item.innerHTML = `
-                    <div class="dream-list-title">${escapeHtml(dream.title)}</div>
-                    <div class="dream-list-date">${dream.shortLabel ? `🏷️ ${escapeHtml(dream.shortLabel)}` : `#${idx+1}`}</div>
-                `;
-                item.onclick = () => {
-                    displayDream(dream);
-                    if (window.innerWidth <= 768) closeSidebar();
-                };
-                dreamListDiv.appendChild(item);
-            });
-        }
-        
-        // =========== CARIAN ===========
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            searchTerm = e.target.value;
-            renderDreamList();
-        });
-        
-        // =========== FAVORIT ===========
-        function showFavorites() {
-            if (!isLoggedIn()) {
-                showToast('🔐 Sila login untuk melihat favorit anda', 'Login', 'login.html');
-                if (window.innerWidth <= 768) closeSidebar();
-                return;
-            }
-            
-            const favorites = getFavorites();
-            const favoriteDreams = dreamsData.filter(d => favorites.includes(d.id));
-            const favoriteListDiv = document.getElementById('favoriteList');
-            
-            if (favoriteDreams.length === 0) {
-                favoriteListDiv.innerHTML = '<div class="empty-message">✨ Belum ada mimpi favorit ✨</div>';
-            } else {
-                favoriteListDiv.innerHTML = '';
-                favoriteDreams.forEach(dream => {
-                    const item = document.createElement('div');
-                    item.className = 'favorite-item';
-                    item.innerHTML = `
-                        <span>${escapeHtml(dream.title)}</span>
-                        <button class="remove-fav" data-id="${dream.id}">Hapus</button>
-                    `;
-                    favoriteListDiv.appendChild(item);
-                });
-                
-                document.querySelectorAll('.remove-fav').forEach(btn => {
-                    btn.onclick = (e) => {
-                        e.stopPropagation();
-                        removeFavorite(btn.getAttribute('data-id'));
-                        showFavorites();
-                        if (currentDream && currentDream.id === btn.getAttribute('data-id')) {
-                            const favBtn = document.getElementById('favoriteBtn');
-                            favBtn.innerHTML = '⭐ Simpan Favorit';
-                            favBtn.classList.remove('saved');
-                        }
-                    };
-                });
-            }
-            document.getElementById('favoriteModal').style.display = 'flex';
-        }
-        
-        function handleFavoriteClick() {
-            if (!isLoggedIn()) {
-                showToast('🔐 Sila login untuk menyimpan favorit', 'Login', 'login.html');
-                return;
-            }
-            if (!currentDream) return;
-            
-            if (isFavorite(currentDream.id)) {
-                removeFavorite(currentDream.id);
-                document.getElementById('favoriteBtn').innerHTML = '⭐ Simpan Favorit';
-                document.getElementById('favoriteBtn').classList.remove('saved');
-                showToast('⭐ Mimpi telah dikeluarkan dari favorit', null, null);
-            } else {
-                addFavorite(currentDream.id);
-                document.getElementById('favoriteBtn').innerHTML = '⭐ Sudah Favorit';
-                document.getElementById('favoriteBtn').classList.add('saved');
-                showToast('✅ Mimpi disimpan ke favorit', null, null);
-            }
-        }
-        
-        // =========== LOAD DATA ===========
-        function loadAllData() {
-            dreamsData = loadDreams();
+
+        async function loadAllData() {
+            dreamsData = await loadDreams();
             renderDreamList();
             if (dreamsData.length > 0) {
                 displayDream(dreamsData[0]);
@@ -476,47 +100,187 @@
                 document.getElementById('counter').innerHTML = "0 mimpi dalam koleksi";
             }
         }
-        
-        // =========== INIT ===========
-        window.addEventListener('load', () => {
-            loadAllData();
-            updateSidebar();
-            
+
+        function displayDream(dream) {
+            if (!dream) return;
+            currentDream = dream;
+            document.getElementById('dreamTitle').innerHTML = escapeHtml(dream.title);
+            document.getElementById('dreamDescription').innerHTML = escapeHtml(dream.description);
+            document.getElementById('counter').innerHTML = `📖 ${dream.title}`;
+            document.getElementById('speechStatus').innerHTML = "✨ AI siap membaca";
+            updateFavoriteButton();
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function updateFavoriteButton() {
+            const favBtn = document.getElementById('favoriteBtn');
+            if (!currentUser) {
+                favBtn.innerHTML = '⭐ Simpan Favorit';
+                favBtn.classList.remove('saved');
+                return;
+            }
+            const isFav = await isFavorite(currentUser, currentDream.id);
+            if (isFav) {
+                favBtn.innerHTML = '⭐ Sudah Favorit';
+                favBtn.classList.add('saved');
+            } else {
+                favBtn.innerHTML = '⭐ Simpan Favorit';
+                favBtn.classList.remove('saved');
+            }
+        }
+
+        async function showRandomDream() {
+            if (dreamsData.length === 0) return;
+            const randomIndex = Math.floor(Math.random() * dreamsData.length);
+            displayDream(dreamsData[randomIndex]);
+        }
+
+        function renderDreamList() {
+            const dreamListDiv = document.getElementById('dreamList');
+            let filtered = dreamsData;
+            if (searchTerm) {
+                filtered = dreamsData.filter(d => d.title.toLowerCase().includes(searchTerm.toLowerCase()) || (d.short_label && d.short_label.toLowerCase().includes(searchTerm.toLowerCase())));
+            }
+            if (filtered.length === 0) { dreamListDiv.innerHTML = '<div class="empty-message">✨ Tiada mimpi ditemui ✨</div>'; return; }
+            dreamListDiv.innerHTML = '';
+            filtered.forEach((dream, idx) => {
+                const item = document.createElement('div');
+                item.className = 'dream-list-item';
+                item.innerHTML = `<div class="dream-list-title">${escapeHtml(dream.title)}</div><div class="dream-list-date">${dream.short_label ? `🏷️ ${escapeHtml(dream.short_label)}` : `#${idx+1}`}</div>`;
+                item.onclick = () => { displayDream(dream); if (window.innerWidth <= 768) closeSidebar(); };
+                dreamListDiv.appendChild(item);
+            });
+        }
+
+        // Sidebar and auth functions
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('active'); }
+        function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('active'); }
+        document.getElementById('hamburgerBtn').onclick = openSidebar;
+        document.getElementById('overlay').onclick = closeSidebar;
+
+        function updateSidebar() {
+            const loggedIn = isLoggedIn();
+            const loginLogoutText = document.getElementById('loginLogoutText');
+            const loginLogoutLink = document.getElementById('loginLogoutLink');
+            const registerMenuLink = document.getElementById('registerMenuLink');
+            if (loggedIn) {
+                currentUser = localStorage.getItem("buku_mimpi_current_user");
+                loginLogoutText.innerHTML = 'Logout';
+                loginLogoutLink.onclick = () => { logout(); };
+                if (registerMenuLink) registerMenuLink.style.display = 'none';
+                if (currentUser === 'admin' && !document.getElementById('adminLink')) {
+                    const adminLink = document.createElement('div');
+                    adminLink.id = 'adminLink';
+                    adminLink.className = 'menu-item';
+                    adminLink.innerHTML = '<i>👑</i> <span>Panel Admin</span>';
+                    adminLink.onclick = () => { closeSidebar(); window.location.href = 'dashboard.html'; };
+                    document.querySelector('.sidebar-menu').appendChild(adminLink);
+                }
+            } else {
+                currentUser = null;
+                loginLogoutText.innerHTML = 'Login';
+                loginLogoutLink.onclick = () => { closeSidebar(); window.location.href = 'login.html'; };
+                if (registerMenuLink) registerMenuLink.style.display = 'flex';
+                const adminLink = document.getElementById('adminLink');
+                if (adminLink) adminLink.remove();
+            }
+        }
+
+        function showToast(message, linkText, linkUrl) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            if (linkText && linkUrl) toast.innerHTML = `${message} <a href="${linkUrl}">${linkText}</a>`;
+            else toast.innerHTML = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        async function showFavorites() {
+            if (!currentUser) { showToast('🔐 Sila login untuk melihat favorit anda', 'Login', 'login.html'); if (window.innerWidth <= 768) closeSidebar(); return; }
+            const favIds = await getFavorites(currentUser);
+            const favoriteDreams = dreamsData.filter(d => favIds.includes(d.id));
+            const container = document.getElementById('favoriteList');
+            if (favoriteDreams.length === 0) { container.innerHTML = '<div class="empty-message">✨ Belum ada mimpi favorit ✨</div>'; }
+            else {
+                container.innerHTML = '';
+                for (const dream of favoriteDreams) {
+                    const item = document.createElement('div');
+                    item.className = 'favorite-item';
+                    item.innerHTML = `<span>${escapeHtml(dream.title)}</span><button class="remove-fav" data-id="${dream.id}">Hapus</button>`;
+                    container.appendChild(item);
+                }
+                document.querySelectorAll('.remove-fav').forEach(btn => {
+                    btn.onclick = async (e) => {
+                        e.stopPropagation();
+                        await removeFavorite(currentUser, btn.getAttribute('data-id'));
+                        showFavorites();
+                        if (currentDream && currentDream.id === btn.getAttribute('data-id')) {
+                            document.getElementById('favoriteBtn').innerHTML = '⭐ Simpan Favorit';
+                            document.getElementById('favoriteBtn').classList.remove('saved');
+                        }
+                    };
+                });
+            }
+            document.getElementById('favoriteModal').style.display = 'flex';
+        }
+
+        async function handleFavoriteClick() {
+            if (!currentUser) { showToast('🔐 Sila login untuk menyimpan favorit', 'Login', 'login.html'); return; }
+            if (!currentDream) return;
+            if (await isFavorite(currentUser, currentDream.id)) {
+                await removeFavorite(currentUser, currentDream.id);
+                document.getElementById('favoriteBtn').innerHTML = '⭐ Simpan Favorit';
+                document.getElementById('favoriteBtn').classList.remove('saved');
+                showToast('⭐ Mimpi telah dikeluarkan dari favorit', null, null);
+            } else {
+                await addFavorite(currentUser, currentDream.id);
+                document.getElementById('favoriteBtn').innerHTML = '⭐ Sudah Favorit';
+                document.getElementById('favoriteBtn').classList.add('saved');
+                showToast('✅ Mimpi disimpan ke favorit', null, null);
+            }
+        }
+
+        // Register modal functions
+        const regModal = document.getElementById('registerModal');
+        function openRegModal() { regModal.style.display = 'flex'; if (window.innerWidth <= 768) closeSidebar(); }
+        function closeRegModal() { regModal.style.display = 'none'; }
+        document.getElementById('registerMenuLink').onclick = openRegModal;
+        document.getElementById('cancelRegisterBtn').onclick = closeRegModal;
+        document.getElementById('confirmRegisterBtn').onclick = async () => {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('regConfirmPassword').value;
+            if (!username || !password) { document.getElementById('registerMessage').innerHTML = '<span style="color:#aa2e2e;">Sila isi semua ruangan</span>'; return; }
+            if (password !== confirm) { document.getElementById('registerMessage').innerHTML = '<span style="color:#aa2e2e;">Kata laluan tidak sama</span>'; return; }
+            const result = await registerUser(username, password);
+            if (result.success) {
+                document.getElementById('registerMessage').innerHTML = `<span style="color:#2e6a2e;">${result.message}</span>`;
+                setTimeout(() => { closeRegModal(); alert(result.message); }, 1500);
+            } else {
+                document.getElementById('registerMessage').innerHTML = `<span style="color:#aa2e2e;">${result.message}</span>`;
+            }
+        };
+
+        // Event listeners
+        document.getElementById('randomBtn').onclick = showRandomDream;
+        document.getElementById('voiceBtn').onclick = () => { if (currentDream && currentDream.description) speakText(currentDream.description, 'speechStatus'); };
+        document.getElementById('favoriteBtn').onclick = handleFavoriteClick;
+        document.getElementById('favoriteLink').onclick = () => { showFavorites(); if (window.innerWidth <= 768) closeSidebar(); };
+        document.getElementById('closeFavoriteModal').onclick = () => document.getElementById('favoriteModal').style.display = 'none';
+        document.getElementById('homeLink').onclick = () => { showRandomDream(); if (window.innerWidth <= 768) closeSidebar(); };
+        document.getElementById('searchInput').addEventListener('input', (e) => { searchTerm = e.target.value; renderDreamList(); });
+        window.onclick = (e) => { if (e.target === document.getElementById('favoriteModal')) document.getElementById('favoriteModal').style.display = 'none'; if (e.target === regModal) closeRegModal(); };
+
+        // Init
+        window.addEventListener('load', async () => {
+            await loadUserSession();
             if (window.speechSynthesis) {
                 if (window.speechSynthesis.getVoices().length) initVoice();
                 else window.speechSynthesis.onvoiceschanged = initVoice;
             }
-            
-            document.getElementById('randomBtn').onclick = showRandomDream;
-            document.getElementById('voiceBtn').onclick = () => {
-                if (currentDream && currentDream.description) {
-                    speakText(currentDream.description, 'speechStatus');
-                }
-            };
-            document.getElementById('favoriteBtn').onclick = handleFavoriteClick;
-            document.getElementById('favoriteLink').onclick = () => {
-                showFavorites();
-                if (window.innerWidth <= 768) closeSidebar();
-            };
-            document.getElementById('registerMenuLink').onclick = openRegisterModal;
-            document.getElementById('closeFavoriteModal').onclick = () => {
-                document.getElementById('favoriteModal').style.display = 'none';
-            };
-            document.getElementById('homeLink').onclick = () => {
-                showRandomDream();
-                if (window.innerWidth <= 768) closeSidebar();
-            };
-            document.getElementById('cancelRegisterBtn').onclick = closeRegisterModal;
-            document.getElementById('confirmRegisterBtn').onclick = handleRegister;
-            
-            window.onclick = (e) => {
-                if (e.target === document.getElementById('favoriteModal')) {
-                    document.getElementById('favoriteModal').style.display = 'none';
-                }
-                if (e.target === document.getElementById('registerModal')) {
-                    closeRegisterModal();
-                }
-            };
         });
     </script>
 </body>
