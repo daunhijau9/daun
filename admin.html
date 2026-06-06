@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Buku Mimpi - Admin</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -98,6 +97,12 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 0.8rem;
+        }
+        .dream-title span {
+            background: #f0dbc0;
+            font-size: 0.65rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 30px;
         }
         .dream-description {
             font-size: 0.95rem;
@@ -229,11 +234,11 @@
             <label>🏷️ Label pendek (opsional)</label>
             <input type="text" id="newShort" placeholder="Misal: 'Terbang'" maxlength="14">
         </div>
-        <p style="font-size:0.7rem;">✅ Data disimpan di Supabase dan dikongsi dengan semua pembaca.</p>
+        <p style="font-size:0.7rem;">✅ Data disimpan dalam penyemak imbas (LocalStorage) dan dikongsi dengan semua pembaca.</p>
     </div>
 
     <div class="footer">
-        🎙️ Suara AI lelaki | Data disimpan di Supabase
+        🎙️ Suara AI lelaki | Data disimpan di LocalStorage
     </div>
 </div>
 
@@ -264,47 +269,112 @@
 </div>
 
 <script>
-    // =========== SUPABASE KONFIGURASI ===========
-    const SUPABASE_URL = "https://ofatbleambihhqbboalh.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mYXRibGVhbWJpaGhxYmJvYWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MzgxMzQsImV4cCI6MjA5NjMxNDEzNH0.FOGqpRUa9Ch0Z7Ilk-yoCkKxs1zrKix_2DxdnTz6OXA";
+    // =========== STORAGE KEYS ===========
+    const DREAMS_KEY = "buku_mimpi_data";
+    const SESSION_KEY = "buku_mimpi_session";
     
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    // EMAIL ADMIN (sama dengan di login.html)
-    const ADMIN_EMAIL = "admin@example.com";  // <--- GANTI DENGAN EMAIL ANDA
+    // Data lalai (contoh mimpi)
+    const defaultDreams = [
+        { id: "1", title: "🌙 Terbang di Langit Perak", shortLabel: "Terbang", description: "Aku melayang tanpa sayap, di atas lautan awan yang berkilauan seperti perak. Angin malam berbisik lembut, membawaku melewati gugusan bintang." },
+        { id: "2", title: "🏃‍♂️ Kejar-kejaran dengan Bayangan", shortLabel: "Kejar", description: "Aku berlari di lorong tanpa ujung, diikuti bayangan hitam yang selalu mengekor. Kakiku terasa berat, tapi pengejar itu tak pernah lelah." }
+    ];
     
     let dreamsData = [];
     let currentActiveId = null;
-    let currentUser = null;
-    let isAdmin = false;
     let preferredVoice = null;
     let voicesLoaded = false;
-
-    // =========== AUTH CHECK ===========
-    async function checkAuth() {
-        const { data: { user } } = await supabase.auth.getUser();
-        currentUser = user;
-        const userBar = document.getElementById('userBar');
+    
+    // =========== SEMAK SESSION ===========
+    function checkSession() {
+        const session = localStorage.getItem(SESSION_KEY);
+        const currentUser = localStorage.getItem("buku_mimpi_current_user");
         
-        if (user && user.email === ADMIN_EMAIL) {
-            isAdmin = true;
-            userBar.innerHTML = `👤 ${user.email} <button id="logoutBtn">Logout</button>`;
-            document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-                await supabase.auth.signOut();
-                window.location.href = 'login.html';
-            });
-            document.getElementById('adminPanel').style.display = 'block';
+        if (session !== "logged_in" || !currentUser) {
+            window.location.href = "login.html";
         } else {
-            isAdmin = false;
-            userBar.innerHTML = `⚠️ Bukan admin. <a href="login.html" style="color:#ffefcf;">Login</a>`;
-            document.getElementById('adminPanel').style.display = 'none';
-            if (user) {
-                await supabase.auth.signOut();
+            document.getElementById('userBar').innerHTML = `👤 ${currentUser} <button id="logoutBtn">Logout</button>`;
+            document.getElementById('logoutBtn')?.addEventListener('click', () => {
+                localStorage.removeItem(SESSION_KEY);
+                localStorage.removeItem("buku_mimpi_current_user");
+                window.location.href = "login.html";
+            });
+        }
+    }
+    
+    // =========== LOAD & SAVE DREAMS ===========
+    function loadDreams() {
+        const stored = localStorage.getItem(DREAMS_KEY);
+        if (stored) {
+            dreamsData = JSON.parse(stored);
+        } else {
+            dreamsData = [...defaultDreams];
+            saveDreams();
+        }
+        render();
+        if (dreamsData.length > 0 && !currentActiveId) activateTab(dreamsData[0].id);
+    }
+    
+    function saveDreams() {
+        localStorage.setItem(DREAMS_KEY, JSON.stringify(dreamsData));
+    }
+    
+    // =========== CRUD ===========
+    function addDream(title, desc, short) {
+        if (!title.trim() || !desc.trim()) { alert("Tajuk dan cerita wajib!"); return false; }
+        const newId = Date.now().toString() + "_" + Math.random().toString(36).substr(2, 6);
+        dreamsData.push({
+            id: newId,
+            title: title.trim(),
+            shortLabel: short.trim() || title.trim().substring(0, 12),
+            description: desc.trim()
+        });
+        saveDreams();
+        loadDreams();
+        activateTab(newId);
+        return true;
+    }
+    
+    function updateDream(id, title, short, desc) {
+        const index = dreamsData.findIndex(d => d.id === id);
+        if (index !== -1) {
+            dreamsData[index] = { ...dreamsData[index], title, shortLabel: short, description: desc };
+            saveDreams();
+            loadDreams();
+            activateTab(id);
+        }
+    }
+    
+    function deleteDream(id) {
+        dreamsData = dreamsData.filter(d => d.id !== id);
+        saveDreams();
+        loadDreams();
+        if (dreamsData.length > 0) activateTab(dreamsData[0].id);
+    }
+    
+    function bulkImport(dreamsArray) {
+        if (!Array.isArray(dreamsArray) || dreamsArray.length === 0) { alert("Array kosong"); return false; }
+        let added = 0;
+        for (let item of dreamsArray) {
+            if (item.title && item.description) {
+                dreamsData.push({
+                    id: Date.now().toString() + "_" + added + "_" + Math.random().toString(36).substr(2, 4),
+                    title: item.title.trim(),
+                    shortLabel: (item.shortLabel?.trim()) || item.title.trim().substring(0, 12),
+                    description: item.description.trim()
+                });
+                added++;
             }
         }
-        loadDreams();
+        if (added > 0) {
+            saveDreams();
+            loadDreams();
+            alert(`Berjaya import ${added} mimpi.`);
+            return true;
+        }
+        alert("Tiada data sah.");
+        return false;
     }
-
+    
     // =========== SUARA AI ===========
     function initVoice() {
         const voices = window.speechSynthesis.getVoices();
@@ -314,7 +384,7 @@
         preferredVoice = male || voices[0];
         voicesLoaded = true;
     }
-
+    
     function speak(text, id) {
         if (!window.speechSynthesis) return;
         if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
@@ -330,48 +400,44 @@
         utter.onend = () => { let s = document.getElementById(`speech-${id}`); if(s) { s.innerText = "✅ Selesai"; setTimeout(() => { if(s.innerText === "✅ Selesai") s.innerText = "✨ AI siap"; }, 2000); } };
         window.speechSynthesis.speak(utter);
     }
-
+    
     function escapeHtml(str) {
         if (!str) return '';
         return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
     }
-
+    
     // =========== RENDER ===========
     function render() {
         const tabNav = document.getElementById('tabNav');
         const tabContent = document.getElementById('tabContent');
         if (!tabNav || !tabContent) return;
-
+        
         const active = document.querySelector('.tab-pane.active-pane');
         if (active) currentActiveId = active.getAttribute('data-pane');
         else if (dreamsData.length > 0 && !currentActiveId) currentActiveId = dreamsData[0].id;
-
+        
         tabNav.innerHTML = '';
         tabContent.innerHTML = '';
-
+        
         if (dreamsData.length === 0) {
-            tabContent.innerHTML = '<div class="empty-message">✨ Belum ada mimpi. Admin boleh menambah mimpi pertama. ✨</div>';
+            tabContent.innerHTML = '<div class="empty-message">✨ Belum ada mimpi. Klik "Post Satu Mimpi" untuk menambah. ✨</div>';
             return;
         }
-
+        
         dreamsData.forEach((dream, idx) => {
             const btn = document.createElement('button');
             btn.className = 'tab-btn';
             if (currentActiveId === dream.id) btn.classList.add('active');
             btn.setAttribute('data-tab', dream.id);
-            const label = (dream.short_label && dream.short_label.trim()) ? dream.short_label : dream.title.substring(0, 12);
+            const label = (dream.shortLabel && dream.shortLabel.trim()) ? dream.shortLabel : dream.title.substring(0, 12);
             btn.innerHTML = `<span>${escapeHtml(label)}</span>`;
             btn.onclick = () => activateTab(dream.id);
             tabNav.appendChild(btn);
-
+            
             const pane = document.createElement('div');
             pane.className = 'tab-pane';
             if (currentActiveId === dream.id) pane.classList.add('active-pane');
             pane.setAttribute('data-pane', dream.id);
-            const adminButtons = isAdmin ? `
-                <button class="edit-btn" data-id="${dream.id}">✏️ Edit</button>
-                <button class="delete-btn" data-id="${dream.id}">🗑️ Hapus</button>
-            ` : '';
             pane.innerHTML = `
                 <div class="dream-card">
                     <div class="dream-title">
@@ -381,28 +447,28 @@
                     <div class="dream-description">${escapeHtml(dream.description)}</div>
                     <div class="action-buttons">
                         <button class="voice-btn" data-id="${dream.id}">🎙️ Baca dengan AI</button>
-                        ${adminButtons}
+                        <button class="edit-btn" data-id="${dream.id}">✏️ Edit</button>
+                        <button class="delete-btn" data-id="${dream.id}">🗑️ Hapus</button>
                         <span class="speech-status" id="speech-${dream.id}">✨ AI siap</span>
                     </div>
                 </div>
             `;
             tabContent.appendChild(pane);
         });
-
+        
         document.querySelectorAll('.voice-btn').forEach(btn => {
             btn.onclick = () => { const d = dreamsData.find(x => x.id === btn.getAttribute('data-id')); if(d) speak(d.description, d.id); };
         });
         
-        if (isAdmin) {
-            document.querySelectorAll('.edit-btn').forEach(btn => {
-                btn.onclick = () => openEdit(btn.getAttribute('data-id'));
-            });
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.onclick = () => { if(confirm("Padam mimpi ini?")) deleteDream(btn.getAttribute('data-id')); };
-            });
-        }
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.onclick = () => openEdit(btn.getAttribute('data-id'));
+        });
+        
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.onclick = () => { if(confirm("Padam mimpi ini?")) deleteDream(btn.getAttribute('data-id')); };
+        });
     }
-
+    
     function activateTab(id) {
         document.querySelectorAll('.tab-btn').forEach(btn => {
             if (btn.getAttribute('data-tab') === id) btn.classList.add('active');
@@ -415,134 +481,62 @@
         if (window.speechSynthesis) window.speechSynthesis.cancel();
         currentActiveId = id;
     }
-
-    // =========== CRUD SUPABASE ===========
-    async function loadDreams() {
-        const { data, error } = await supabase
-            .from('dreams')
-            .select('*')
-            .order('created_at', { ascending: true });
-        
-        if (error) {
-            console.error("Error:", error);
-            dreamsData = [];
-        } else {
-            dreamsData = data || [];
-        }
-        render();
-        if (dreamsData.length > 0 && !currentActiveId) activateTab(dreamsData[0].id);
-    }
-
-    async function addDream(title, desc, short) {
-        if (!title.trim() || !desc.trim()) throw new Error("Tajuk dan cerita wajib");
-        const newId = Date.now().toString() + "_" + Math.random().toString(36).substr(2, 6);
-        const { error } = await supabase.from('dreams').insert([{
-            id: newId,
-            title: title.trim(),
-            short_label: short.trim() || title.trim().substring(0, 12),
-            description: desc.trim(),
-            created_at: new Date().toISOString()
-        }]);
-        if (error) throw new Error(error.message);
-        await loadDreams();
-        activateTab(newId);
-    }
-
-    async function updateDream(id, title, short, desc) {
-        const { error } = await supabase
-            .from('dreams')
-            .update({ title, short_label: short, description: desc })
-            .eq('id', id);
-        if (error) throw new Error(error.message);
-        await loadDreams();
-        activateTab(id);
-    }
-
-    async function deleteDream(id) {
-        const { error } = await supabase.from('dreams').delete().eq('id', id);
-        if (error) throw new Error(error.message);
-        await loadDreams();
-        if (dreamsData.length > 0) activateTab(dreamsData[0].id);
-    }
-
-    async function bulkImport(dreamsArray) {
-        if (!Array.isArray(dreamsArray) || dreamsArray.length === 0) throw new Error("Array kosong");
-        const newDreams = [];
-        for (let item of dreamsArray) {
-            if (item.title && item.description) {
-                newDreams.push({
-                    id: Date.now().toString() + "_" + Math.random().toString(36).substr(2, 6) + "_" + newDreams.length,
-                    title: item.title.trim(),
-                    short_label: (item.shortLabel?.trim()) || item.title.trim().substring(0, 12),
-                    description: item.description.trim(),
-                    created_at: new Date().toISOString()
-                });
-            }
-        }
-        if (newDreams.length === 0) throw new Error("Tiada data sah");
-        const { error } = await supabase.from('dreams').insert(newDreams);
-        if (error) throw new Error(error.message);
-        await loadDreams();
-        return newDreams.length;
-    }
-
-    // =========== HANDLER EDIT ===========
+    
+    // =========== MODAL HANDLERS ===========
     let editingId = null;
     function openEdit(id) {
         const dream = dreamsData.find(d => d.id === id);
         if (!dream) return;
         editingId = id;
         document.getElementById('editTitle').value = dream.title;
-        document.getElementById('editShort').value = dream.short_label || '';
+        document.getElementById('editShort').value = dream.shortLabel || '';
         document.getElementById('editDesc').value = dream.description;
         document.getElementById('editModal').style.display = 'flex';
     }
     function closeEdit() { document.getElementById('editModal').style.display = 'none'; editingId = null; }
-    async function saveEdit() {
+    function saveEdit() {
         if (!editingId) return;
         const newTitle = document.getElementById('editTitle').value.trim();
         const newShort = document.getElementById('editShort').value.trim();
         const newDesc = document.getElementById('editDesc').value.trim();
         if (!newTitle || !newDesc) { alert("Tajuk dan cerita wajib!"); return; }
-        await updateDream(editingId, newTitle, newShort || newTitle.substring(0,12), newDesc);
+        updateDream(editingId, newTitle, newShort || newTitle.substring(0,12), newDesc);
         closeEdit();
     }
-
-    // =========== HANDLER BULK ===========
+    
     function openBulk() { document.getElementById('bulkModal').style.display = 'flex'; }
     function closeBulk() { document.getElementById('bulkModal').style.display = 'none'; }
-    async function confirmBulk() {
+    function confirmBulk() {
         const json = document.getElementById('bulkJson').value.trim();
         if (!json) return alert("Masukkan JSON");
         try {
             const parsed = JSON.parse(json);
-            const count = await bulkImport(parsed);
-            document.getElementById('bulkJson').value = '';
-            closeBulk();
-            alert(`Berjaya import ${count} mimpi.`);
+            if (bulkImport(parsed)) {
+                document.getElementById('bulkJson').value = '';
+                closeBulk();
+            }
         } catch(e) { alert("JSON tidak sah: " + e.message); }
     }
-
+    
     // =========== INIT ===========
     window.addEventListener('load', () => {
-        checkAuth();
+        checkSession();
+        loadDreams();
         if (window.speechSynthesis) {
             if (window.speechSynthesis.getVoices().length) initVoice();
             else window.speechSynthesis.onvoiceschanged = initVoice;
         }
         
-        document.getElementById('postDreamBtn').onclick = async () => {
-            if (!isAdmin) return;
+        document.getElementById('postDreamBtn').onclick = () => {
             const title = document.getElementById('newTitle').value;
             const desc = document.getElementById('newDesc').value;
             const short = document.getElementById('newShort').value;
-            try {
-                await addDream(title, desc, short);
+            if (addDream(title, desc, short)) {
                 document.getElementById('newTitle').value = '';
                 document.getElementById('newDesc').value = '';
                 document.getElementById('newShort').value = '';
                 alert("Mimpi ditambah!");
-            } catch(e) { alert(e.message); }
+            }
         };
         
         document.getElementById('bulkImportBtn').onclick = openBulk;
