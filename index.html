@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Buku Mimpi - Pembaca</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -66,7 +65,10 @@
         }
         .tab-pane { display: none; animation: fadeSlide 0.25s ease-out; }
         .tab-pane.active-pane { display: block; }
-        @keyframes fadeSlide { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         .dream-card {
             background: #fffaf2;
             border-radius: 1.5rem;
@@ -157,16 +159,24 @@
 </div>
 
 <script>
-    const SUPABASE_URL = "https://ofatbleambihhqbboalh.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mYXRibGVhbWJpaGhxYmJvYWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MzgxMzQsImV4cCI6MjA5NjMxNDEzNH0.FOGqpRUa9Ch0Z7Ilk-yoCkKxs1zrKix_2DxdnTz6OXA";
-    
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const DREAMS_KEY = "buku_mimpi_data";
     
     let dreamsData = [];
     let currentActiveId = null;
     let preferredVoice = null;
     let voicesLoaded = false;
-
+    
+    function loadDreams() {
+        const stored = localStorage.getItem(DREAMS_KEY);
+        if (stored) {
+            dreamsData = JSON.parse(stored);
+        } else {
+            dreamsData = [];
+        }
+        render();
+        if (dreamsData.length > 0 && !currentActiveId) activateTab(dreamsData[0].id);
+    }
+    
     function initVoice() {
         const voices = window.speechSynthesis.getVoices();
         if (!voices.length) return;
@@ -175,7 +185,7 @@
         preferredVoice = male || voices[0];
         voicesLoaded = true;
     }
-
+    
     function speak(text, id) {
         if (!window.speechSynthesis) return;
         if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
@@ -191,55 +201,39 @@
         utter.onend = () => { let s = document.getElementById(`speech-${id}`); if(s) { s.innerText = "✅ Selesai"; setTimeout(() => { if(s.innerText === "✅ Selesai") s.innerText = "✨ AI siap"; }, 2000); } };
         window.speechSynthesis.speak(utter);
     }
-
+    
     function escapeHtml(str) {
         if (!str) return '';
         return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
     }
-
-    async function loadDreams() {
-        const { data, error } = await supabase
-            .from('dreams')
-            .select('*')
-            .order('created_at', { ascending: true });
-        
-        if (error) {
-            console.error("Error:", error);
-            dreamsData = [];
-        } else {
-            dreamsData = data || [];
-        }
-        render();
-        if (dreamsData.length > 0 && !currentActiveId) activateTab(dreamsData[0].id);
-    }
-
+    
     function render() {
         const tabNav = document.getElementById('tabNav');
         const tabContent = document.getElementById('tabContent');
         if (!tabNav || !tabContent) return;
-
+        
         const active = document.querySelector('.tab-pane.active-pane');
         if (active) currentActiveId = active.getAttribute('data-pane');
         else if (dreamsData.length > 0 && !currentActiveId) currentActiveId = dreamsData[0].id;
-
+        
         tabNav.innerHTML = '';
         tabContent.innerHTML = '';
-
+        
         if (dreamsData.length === 0) {
             tabContent.innerHTML = '<div class="empty-message">✨ Belum ada mimpi. Sila tunggu admin menambah mimpi. ✨</div>';
             return;
         }
-
+        
         dreamsData.forEach((dream, idx) => {
             const btn = document.createElement('button');
             btn.className = 'tab-btn';
             if (currentActiveId === dream.id) btn.classList.add('active');
             btn.setAttribute('data-tab', dream.id);
-            const label = (dream.short_label && dream.short_label.trim()) ? dream.short_label : dream.title.substring(0, 12);
+            const label = (dream.shortLabel && dream.shortLabel.trim()) ? dream.shortLabel : dream.title.substring(0, 12);
             btn.innerHTML = `<span>${escapeHtml(label)}</span>`;
             btn.onclick = () => activateTab(dream.id);
             tabNav.appendChild(btn);
-
+            
             const pane = document.createElement('div');
             pane.className = 'tab-pane';
             if (currentActiveId === dream.id) pane.classList.add('active-pane');
@@ -259,12 +253,12 @@
             `;
             tabContent.appendChild(pane);
         });
-
+        
         document.querySelectorAll('.voice-btn').forEach(btn => {
             btn.onclick = () => { const d = dreamsData.find(x => x.id === btn.getAttribute('data-id')); if(d) speak(d.description, d.id); };
         });
     }
-
+    
     function activateTab(id) {
         document.querySelectorAll('.tab-btn').forEach(btn => {
             if (btn.getAttribute('data-tab') === id) btn.classList.add('active');
@@ -277,7 +271,7 @@
         if (window.speechSynthesis) window.speechSynthesis.cancel();
         currentActiveId = id;
     }
-
+    
     window.addEventListener('load', () => {
         loadDreams();
         if (window.speechSynthesis) {
