@@ -5,6 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Buku Mimpi - Koleksi Mimpi</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2c1e12;
+            color: #ffefcf;
+            padding: 0.8rem 1.5rem;
+            border-radius: 2rem;
+            font-size: 0.85rem;
+            z-index: 300;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.3s ease;
+        }
+        .toast a {
+            color: #fae67a;
+            text-decoration: underline;
+            margin-left: 8px;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- BUTANG HAMBURGER (MOBILE) -->
@@ -82,6 +114,31 @@
         let currentDream = null;
         let searchTerm = '';
         
+        // =========== TOAST NOTIFICATION ===========
+        function showToast(message, linkText, linkUrl) {
+            // Remove existing toast
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) existingToast.remove();
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            if (linkText && linkUrl) {
+                toast.innerHTML = `${message} <a href="${linkUrl}">${linkText}</a>`;
+            } else {
+                toast.innerHTML = message;
+            }
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 4000);
+        }
+        
+        // =========== SEMAK LOGIN ===========
+        function isLoggedIn() {
+            return localStorage.getItem(SESSION_KEY) === "logged_in";
+        }
+        
         // =========== FUNGSI SIDEBAR ===========
         function closeSidebar() {
             document.getElementById('sidebar').classList.remove('open');
@@ -98,11 +155,11 @@
         
         // =========== UPDATE SIDEBAR STATE ===========
         function updateSidebar() {
-            const isLoggedIn = localStorage.getItem(SESSION_KEY) === "logged_in";
+            const loggedIn = isLoggedIn();
             const loginLogoutText = document.getElementById('loginLogoutText');
             const loginLogoutLink = document.getElementById('loginLogoutLink');
             
-            if (isLoggedIn) {
+            if (loggedIn) {
                 loginLogoutText.innerHTML = 'Logout';
                 loginLogoutLink.onclick = () => {
                     localStorage.removeItem(SESSION_KEY);
@@ -144,8 +201,12 @@
             document.getElementById('counter').innerHTML = `📖 ${dream.title}`;
             document.getElementById('speechStatus').innerHTML = "✨ AI siap membaca";
             
+            // Update favorite button based on login status and favorite status
             const favBtn = document.getElementById('favoriteBtn');
-            if (isFavorite(dream.id)) {
+            if (!isLoggedIn()) {
+                favBtn.innerHTML = '⭐ Simpan Favorit';
+                favBtn.classList.remove('saved');
+            } else if (isFavorite(dream.id)) {
                 favBtn.innerHTML = '⭐ Sudah Favorit';
                 favBtn.classList.add('saved');
             } else {
@@ -207,8 +268,15 @@
             renderDreamList();
         });
         
-        // =========== FAVORIT ===========
+        // =========== FAVORIT (DENGAN SEMAKAN LOGIN) ===========
         function showFavorites() {
+            // Semak login dahulu
+            if (!isLoggedIn()) {
+                showToast('🔐 Sila login untuk melihat favorit anda', 'Login', 'login.html');
+                if (window.innerWidth <= 768) closeSidebar();
+                return;
+            }
+            
             const favorites = getFavorites();
             const favoriteDreams = dreamsData.filter(d => favorites.includes(d.id));
             const favoriteListDiv = document.getElementById('favoriteList');
@@ -243,6 +311,29 @@
             document.getElementById('favoriteModal').style.display = 'flex';
         }
         
+        // Fungsi untuk handle favorit dengan semakan login
+        function handleFavoriteClick() {
+            // Semak login dahulu
+            if (!isLoggedIn()) {
+                showToast('🔐 Sila login untuk menyimpan favorit', 'Login', 'login.html');
+                return;
+            }
+            
+            if (!currentDream) return;
+            
+            if (isFavorite(currentDream.id)) {
+                removeFavorite(currentDream.id);
+                document.getElementById('favoriteBtn').innerHTML = '⭐ Simpan Favorit';
+                document.getElementById('favoriteBtn').classList.remove('saved');
+                showToast('⭐ Mimpi telah dikeluarkan dari favorit', null, null);
+            } else {
+                addFavorite(currentDream.id);
+                document.getElementById('favoriteBtn').innerHTML = '⭐ Sudah Favorit';
+                document.getElementById('favoriteBtn').classList.add('saved');
+                showToast('✅ Mimpi disimpan ke favorit', null, null);
+            }
+        }
+        
         // =========== LOAD DATA ===========
         function loadAllData() {
             dreamsData = loadDreams();
@@ -272,18 +363,7 @@
                     speakText(currentDream.description, 'speechStatus');
                 }
             };
-            document.getElementById('favoriteBtn').onclick = () => {
-                if (!currentDream) return;
-                if (isFavorite(currentDream.id)) {
-                    removeFavorite(currentDream.id);
-                    document.getElementById('favoriteBtn').innerHTML = '⭐ Simpan Favorit';
-                    document.getElementById('favoriteBtn').classList.remove('saved');
-                } else {
-                    addFavorite(currentDream.id);
-                    document.getElementById('favoriteBtn').innerHTML = '⭐ Sudah Favorit';
-                    document.getElementById('favoriteBtn').classList.add('saved');
-                }
-            };
+            document.getElementById('favoriteBtn').onclick = handleFavoriteClick;
             document.getElementById('favoriteLink').onclick = () => {
                 showFavorites();
                 if (window.innerWidth <= 768) closeSidebar();
