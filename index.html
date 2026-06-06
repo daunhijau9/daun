@@ -310,7 +310,7 @@
 
     <div class="tab-nav" id="tabNav"></div>
     <div class="tab-content-container" id="tabContent">
-        <div class="loading">Loading mimpi...</div>
+        <div class="loading">Memuatkan mimpi...</div>
     </div>
 
     <div class="admin-section" id="adminSection">
@@ -365,11 +365,11 @@
 </div>
 
 <script>
-    // =========== KONFIGURASI SUPABASE (SUDAH DIMASUKKAN) ===========
+    // =========== KONFIGURASI SUPABASE ===========
     const SUPABASE_URL = "https://ofatbleambihhqbboalh.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mYXRibGVhbWJpaGhxYmJvYWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MzgxMzQsImV4cCI6MjA5NjMxNDEzNH0.FOGqpRUa9Ch0Z7Ilk-yoCkKxs1zrKix_2DxdnTz6OXA";
     
-    // ⚠️ PENTING: Gantikan email di bawah dengan email Google ANDA
+    // ⚠️ GANTIKAN EMAIL DI BAWAH DENGAN EMAIL GOOGLE ANDA ⚠️
     const ADMIN_EMAIL = "ADMIN_EMAIL_HERE";  // <--- UBAH INI
     
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -381,15 +381,11 @@
     let preferredVoice = null;
     let voicesLoaded = false;
 
-    // =========== SUARA AI LELAKI ===========
+    // =========== SUARA AI ===========
     function initVoiceSelection() {
         const voices = window.speechSynthesis.getVoices();
         if (!voices.length) return;
-        let maleVoice = voices.find(v => 
-            v.name.toLowerCase().includes('male') || 
-            (v.lang === 'en-US' && v.name.toLowerCase().includes('male')) ||
-            v.name.toLowerCase().includes('google uk english male')
-        );
+        let maleVoice = voices.find(v => v.name.toLowerCase().includes('male') || (v.lang === 'en-US' && v.name.toLowerCase().includes('male')));
         if (!maleVoice) maleVoice = voices.find(v => !v.name.toLowerCase().includes('female'));
         preferredVoice = maleVoice || voices[0];
         voicesLoaded = true;
@@ -401,37 +397,17 @@
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'id-ID';
         utterance.rate = 0.9;
-        utterance.pitch = 1.0;
         if (preferredVoice) utterance.voice = preferredVoice;
         else if (!voicesLoaded) {
-            window.speechSynthesis.onvoiceschanged = () => {
-                initVoiceSelection();
-                if (preferredVoice) utterance.voice = preferredVoice;
-                window.speechSynthesis.speak(utterance);
-            };
+            window.speechSynthesis.onvoiceschanged = () => { initVoiceSelection(); if (preferredVoice) utterance.voice = preferredVoice; window.speechSynthesis.speak(utterance); };
             return;
         }
-        utterance.onstart = () => {
-            const span = document.getElementById(`speechStatus-${dreamId}`);
-            if (span) span.innerText = "🔊 AI membaca...";
-        };
-        utterance.onend = () => {
-            const span = document.getElementById(`speechStatus-${dreamId}`);
-            if (span) { 
-                span.innerText = "✅ Selesai"; 
-                setTimeout(() => { 
-                    if(span.innerText === "✅ Selesai") span.innerText = "✨ AI siap"; 
-                }, 2000); 
-            }
-        };
-        utterance.onerror = () => {
-            const span = document.getElementById(`speechStatus-${dreamId}`);
-            if (span) span.innerText = "⚠️ Gagal";
-        };
+        utterance.onstart = () => { const s = document.getElementById(`speechStatus-${dreamId}`); if(s) s.innerText = "🔊 Membaca..."; };
+        utterance.onend = () => { const s = document.getElementById(`speechStatus-${dreamId}`); if(s) { s.innerText = "✅ Selesai"; setTimeout(() => { if(s.innerText === "✅ Selesai") s.innerText = "✨ AI siap"; }, 2000); } };
         window.speechSynthesis.speak(utterance);
     }
 
-    // =========== RENDER BUKU MIMPI ===========
+    // =========== RENDER ===========
     function renderDreamBook() {
         const tabNav = document.getElementById('tabNav');
         const tabContent = document.getElementById('tabContent');
@@ -463,16 +439,10 @@
             pane.className = 'tab-pane';
             if (currentActiveId === dream.id) pane.classList.add('active-pane');
             pane.setAttribute('data-pane', dream.id);
-            const adminButtons = isAdmin ? `
-                <button class="edit-btn" data-edit-id="${dream.id}">✏️ Edit</button>
-                <button class="delete-btn" data-delete-id="${dream.id}">🗑️ Hapus</button>
-            ` : '';
+            const adminButtons = isAdmin ? `<button class="edit-btn" data-edit-id="${dream.id}">✏️ Edit</button><button class="delete-btn" data-delete-id="${dream.id}">🗑️ Hapus</button>` : '';
             pane.innerHTML = `
                 <div class="dream-card">
-                    <div class="dream-title">
-                        ${escapeHtml(dream.title)}
-                        <span>📖 mimpi #${idx+1}</span>
-                    </div>
+                    <div class="dream-title">${escapeHtml(dream.title)} <span>📖 mimpi #${idx+1}</span></div>
                     <div class="dream-description">${escapeHtml(dream.description)}</div>
                     <div class="action-buttons">
                         <button class="voice-btn" data-read-id="${dream.id}">🎙️ Baca dengan AI</button>
@@ -485,24 +455,12 @@
         });
 
         document.querySelectorAll('.voice-btn').forEach(btn => {
-            btn.removeEventListener('click', voiceHandler);
-            btn.addEventListener('click', voiceHandler);
+            btn.onclick = (e) => { const id = btn.getAttribute('data-read-id'); const dream = dreamsData.find(d => d.id === id); if (dream) speakDream(dream.description, id); };
         });
-        function voiceHandler(e) {
-            const id = e.currentTarget.getAttribute('data-read-id');
-            const dream = dreamsData.find(d => d.id === id);
-            if (dream) speakDream(dream.description, id);
-        }
         
         if (isAdmin) {
-            document.querySelectorAll('.edit-btn').forEach(btn => {
-                btn.removeEventListener('click', editHandler);
-                btn.addEventListener('click', editHandler);
-            });
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.removeEventListener('click', deleteHandler);
-                btn.addEventListener('click', deleteHandler);
-            });
+            document.querySelectorAll('.edit-btn').forEach(btn => { btn.onclick = (e) => editHandler(btn.getAttribute('data-edit-id')); });
+            document.querySelectorAll('.delete-btn').forEach(btn => { btn.onclick = async (e) => { if (confirm("Padam mimpi ini?")) await deleteDream(btn.getAttribute('data-delete-id')); }; });
         }
     }
 
@@ -524,36 +482,20 @@
         return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
     }
 
-    // =========== FUNGSI LOAD DATA DARI SUPABASE ===========
+    // =========== CRUD ===========
     async function loadDreams() {
-        const tabContent = document.getElementById('tabContent');
-        if (tabContent) tabContent.innerHTML = '<div class="loading">Loading mimpi...</div>';
-        
-        const { data, error } = await supabase
-            .from('dreams')
-            .select('*')
-            .order('created_at', { ascending: true });
-        
-        if (error) {
-            console.error("Error loading dreams:", error);
-            if (tabContent) tabContent.innerHTML = `<div class="empty-message">⚠️ Gagal memuat mimpi: ${error.message}</div>`;
-            return;
-        }
-        
+        const { data, error } = await supabase.from('dreams').select('*').order('created_at', { ascending: true });
+        if (error) { console.error(error); document.getElementById('tabContent').innerHTML = `<div class="empty-message">⚠️ Gagal memuat mimpi</div>`; return; }
         dreamsData = data || [];
         renderDreamBook();
         if (dreamsData.length > 0 && !currentActiveId) activateTab(dreamsData[0].id);
     }
 
-    // =========== CRUD OPERATIONS ===========
     async function addDream(title, desc, shortLabel) {
         if (!title.trim() || !desc.trim()) throw new Error("Tajuk dan cerita wajib");
         const newId = Date.now().toString() + "_" + Math.random().toString(36).substr(2, 6);
         const { error } = await supabase.from('dreams').insert([{
-            id: newId,
-            title: title.trim(),
-            short_label: shortLabel.trim() || title.trim().substring(0, 12),
-            description: desc.trim()
+            id: newId, title: title.trim(), short_label: shortLabel.trim() || title.trim().substring(0, 12), description: desc.trim()
         }]);
         if (error) throw new Error(error.message);
         await loadDreams();
@@ -561,10 +503,7 @@
     }
 
     async function updateDream(id, title, shortLabel, desc) {
-        const { error } = await supabase
-            .from('dreams')
-            .update({ title, short_label: shortLabel, description: desc })
-            .eq('id', id);
+        const { error } = await supabase.from('dreams').update({ title, short_label: shortLabel, description: desc }).eq('id', id);
         if (error) throw new Error(error.message);
         await loadDreams();
         activateTab(id);
@@ -597,105 +536,59 @@
         return newDreams.length;
     }
 
-    // =========== HANDLER ADMIN ===========
+    // =========== ADMIN HANDLER ===========
     let editingId = null;
-    const editModal = document.getElementById('editModal');
-    
-    function editHandler(e) {
-        const id = e.currentTarget.getAttribute('data-edit-id');
+    function editHandler(id) {
         const dream = dreamsData.find(d => d.id === id);
         if (!dream) return;
         editingId = id;
         document.getElementById('editTitle').value = dream.title;
         document.getElementById('editShortLabel').value = dream.short_label || '';
         document.getElementById('editDescription').value = dream.description;
-        editModal.style.display = 'flex';
+        document.getElementById('editModal').style.display = 'flex';
     }
-    
     async function saveEdit() {
         if (!editingId) return;
         const newTitle = document.getElementById('editTitle').value.trim();
         const newShort = document.getElementById('editShortLabel').value.trim();
         const newDesc = document.getElementById('editDescription').value.trim();
         if (!newTitle || !newDesc) { alert("Tajuk dan cerita wajib!"); return; }
-        try {
-            await updateDream(editingId, newTitle, newShort || newTitle.substring(0,12), newDesc);
-            editModal.style.display = 'none';
-            editingId = null;
-        } catch(e) { alert(e.message); }
-    }
-    
-    async function deleteHandler(e) {
-        const id = e.currentTarget.getAttribute('data-delete-id');
-        if (confirm("Padam mimpi ini untuk semua pengguna?")) {
-            try {
-                await deleteDream(id);
-            } catch(e) { alert(e.message); }
-        }
+        await updateDream(editingId, newTitle, newShort || newTitle.substring(0,12), newDesc);
+        document.getElementById('editModal').style.display = 'none';
+        editingId = null;
     }
 
-    // =========== SUPABASE AUTH ===========
+    // =========== AUTH ===========
     async function checkAndUpdateAuth() {
         const { data: { user } } = await supabase.auth.getUser();
         currentUser = user;
         const loginArea = document.getElementById('loginArea');
-        
         if (user) {
             isAdmin = user.email === ADMIN_EMAIL;
-            loginArea.innerHTML = `
-                <div class="user-info">
-                    👤 ${user.email} ${isAdmin ? '<span class="admin-badge">Admin</span>' : ''}
-                    <button id="logoutBtn">Logout</button>
-                </div>
-            `;
-            document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-                await supabase.auth.signOut();
-                location.reload();
-            });
+            loginArea.innerHTML = `<div class="user-info">👤 ${user.email} ${isAdmin ? '<span class="admin-badge">Admin</span>' : ''}<button id="logoutBtn">Logout</button></div>`;
+            document.getElementById('logoutBtn')?.addEventListener('click', async () => { await supabase.auth.signOut(); location.reload(); });
         } else {
             isAdmin = false;
-            loginArea.innerHTML = `
-                <button class="login-btn" id="loginBtn">🔑 Login dengan Google</button>
-            `;
+            loginArea.innerHTML = `<button class="login-btn" id="loginBtn">🔑 Login dengan Google</button>`;
             document.getElementById('loginBtn')?.addEventListener('click', async () => {
-                const { error } = await supabase.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: { redirectTo: window.location.origin + window.location.pathname }
-                });
+                const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
                 if (error) alert("Login gagal: " + error.message);
             });
         }
-        
-        const adminSection = document.getElementById('adminSection');
-        if (adminSection) adminSection.style.display = isAdmin ? 'block' : 'none';
+        document.getElementById('adminSection').style.display = isAdmin ? 'block' : 'none';
         renderDreamBook();
     }
 
-    // Subscribe ke realtime Supabase
-    function subscribeToRealtime() {
-        const channel = supabase
-            .channel('dreams-changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'dreams' }, () => {
-                loadDreams();
-            })
-            .subscribe();
-    }
-
-    // =========== INISIALISASI ===========
+    // =========== INIT ===========
     window.addEventListener('load', async () => {
-        // Suara
         if (window.speechSynthesis) {
             if (window.speechSynthesis.getVoices().length) initVoiceSelection();
             else window.speechSynthesis.onvoiceschanged = initVoiceSelection;
         }
-        
-        // Auth dan data
         await checkAndUpdateAuth();
         await loadDreams();
-        subscribeToRealtime();
         
-        // Admin form events
-        document.getElementById('postDreamBtn')?.addEventListener('click', async () => {
+        document.getElementById('postDreamBtn').onclick = async () => {
             if (!isAdmin) return;
             const title = document.getElementById('newDreamTitle').value;
             const desc = document.getElementById('newDreamDesc').value;
@@ -705,15 +598,11 @@
                 document.getElementById('newDreamTitle').value = '';
                 document.getElementById('newDreamDesc').value = '';
                 document.getElementById('newDreamShort').value = '';
-                alert("Mimpi berjaya ditambah!");
+                alert("Mimpi ditambah!");
             } catch(e) { alert(e.message); }
-        });
-        
-        document.getElementById('bulkImportBtn')?.addEventListener('click', () => {
-            if (isAdmin) document.getElementById('bulkModal').style.display = 'flex';
-        });
-        
-        document.getElementById('confirmBulkBtn')?.addEventListener('click', async () => {
+        };
+        document.getElementById('bulkImportBtn').onclick = () => { if (isAdmin) document.getElementById('bulkModal').style.display = 'flex'; };
+        document.getElementById('confirmBulkBtn').onclick = async () => {
             const jsonText = document.getElementById('bulkJsonData').value.trim();
             if (!jsonText) return alert("Masukkan JSON");
             try {
@@ -722,23 +611,11 @@
                 document.getElementById('bulkJsonData').value = '';
                 document.getElementById('bulkModal').style.display = 'none';
                 alert(`Berjaya import ${count} mimpi.`);
-            } catch(e) { alert("JSON tidak sah atau gagal import: " + e.message); }
-        });
-        
-        document.getElementById('cancelBulkBtn')?.addEventListener('click', () => {
-            document.getElementById('bulkModal').style.display = 'none';
-        });
-        
-        document.getElementById('cancelEditBtn')?.addEventListener('click', () => {
-            editModal.style.display = 'none';
-        });
-        
-        document.getElementById('saveEditBtn')?.addEventListener('click', saveEdit);
-        
-        window.addEventListener('click', (e) => {
-            if (e.target === editModal) editModal.style.display = 'none';
-            if (e.target === document.getElementById('bulkModal')) document.getElementById('bulkModal').style.display = 'none';
-        });
+            } catch(e) { alert("JSON tidak sah: " + e.message); }
+        };
+        document.getElementById('cancelBulkBtn').onclick = () => document.getElementById('bulkModal').style.display = 'none';
+        document.getElementById('cancelEditBtn').onclick = () => document.getElementById('editModal').style.display = 'none';
+        document.getElementById('saveEditBtn').onclick = saveEdit;
     });
 </script>
 </body>
