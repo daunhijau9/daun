@@ -30,8 +30,16 @@
             text-align: center;
             border-bottom: 3px solid #e6b450;
         }
-        .header h1 { font-size: 1.6rem; color: #fae67a; }
-        .header p { color: #ecd9b4; font-style: italic; font-size: 0.8rem; }
+        .header h1 {
+            font-size: 1.6rem;
+            color: #fae67a;
+            text-shadow: 2px 2px 0 #5a3e1f;
+        }
+        .header p {
+            color: #ecd9b4;
+            font-style: italic;
+            font-size: 0.8rem;
+        }
         .tab-nav {
             display: flex;
             flex-wrap: nowrap;
@@ -39,7 +47,11 @@
             background: #3e2a1f;
             gap: 0.25rem;
             padding: 0.6rem 0.6rem 0 0.6rem;
+            scrollbar-width: thin;
         }
+        .tab-nav::-webkit-scrollbar { height: 4px; }
+        .tab-nav::-webkit-scrollbar-track { background: #5e422b; border-radius: 10px; }
+        .tab-nav::-webkit-scrollbar-thumb { background: #f5b042; border-radius: 10px; }
         .tab-btn {
             background: #5e422b;
             border: none;
@@ -50,19 +62,30 @@
             cursor: pointer;
             border-radius: 1rem 1rem 0 0;
             white-space: nowrap;
+            flex-shrink: 0;
         }
-        .tab-btn.active { background: #ffefcf; color: #3e2a1f; }
+        .tab-btn:hover { background: #7b5a3c; }
+        .tab-btn.active {
+            background: #ffefcf;
+            color: #3e2a1f;
+            border-bottom: 2px solid #ffb347;
+        }
         .tab-content-container {
             background: #ffefcf;
             padding: 1rem;
             min-height: 300px;
         }
-        .tab-pane { display: none; }
+        .tab-pane { display: none; animation: fadeSlide 0.25s ease-out; }
         .tab-pane.active-pane { display: block; }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         .dream-card {
             background: #fffaf2;
             border-radius: 1.5rem;
             padding: 1rem;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
             border: 1px solid #f3dfbc;
         }
         .dream-title {
@@ -71,9 +94,16 @@
             color: #4b2e1a;
             border-left: 5px solid #f5b042;
             padding-left: 0.7rem;
+            margin-bottom: 0.8rem;
             display: flex;
             justify-content: space-between;
-            margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+        }
+        .dream-title span {
+            background: #f0dbc0;
+            font-size: 0.65rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 30px;
         }
         .dream-description {
             font-size: 0.95rem;
@@ -92,7 +122,11 @@
             color: white;
             font-weight: bold;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
+        .voice-btn:hover { background: linear-gradient(95deg, #1f4a64, #123247); transform: scale(1.02); }
         .speech-status {
             font-size: 0.65rem;
             color: #7e6b53;
@@ -108,10 +142,16 @@
         .empty-message {
             text-align: center;
             padding: 2rem;
+            background: #fff6ea;
+            border-radius: 1.2rem;
             color: #7a5a3a;
         }
         @media (max-width: 550px) {
+            .dream-book { margin: 0.5rem; border-radius: 1.5rem; }
+            .header h1 { font-size: 1.3rem; }
             .dream-title { font-size: 1.1rem; }
+            .voice-btn { padding: 0.4rem 0.8rem; font-size: 0.7rem; }
+            .tab-btn { padding: 0.4rem 0.7rem; font-size: 0.7rem; }
         }
     </style>
 </head>
@@ -123,7 +163,7 @@
     </div>
     <div class="tab-nav" id="tabNav"></div>
     <div class="tab-content-container" id="tabContent">
-        <div class="empty-message">Loading mimpi...</div>
+        <div class="empty-message">Memuatkan mimpi...</div>
     </div>
     <div class="footer">
         🎙️ Suara AI lelaki | Koleksi mimpi daripada admin
@@ -131,7 +171,7 @@
 </div>
 
 <script>
-    const STORAGE_KEY = "buku_mimpi_admin_data";
+    const STORAGE_KEY = "buku_mimpi_data";
     
     let dreamsData = [];
     let currentActiveId = null;
@@ -200,7 +240,8 @@
             btn.className = 'tab-btn';
             if (currentActiveId === dream.id) btn.classList.add('active');
             btn.setAttribute('data-tab', dream.id);
-            btn.innerHTML = `<span>${escapeHtml(dream.shortLabel || dream.title.substring(0,12))}</span>`;
+            const label = (dream.shortLabel && dream.shortLabel.trim()) ? dream.shortLabel : dream.title.substring(0, 12);
+            btn.innerHTML = `<span>${escapeHtml(label)}</span>`;
             btn.onclick = () => activateTab(dream.id);
             tabNav.appendChild(btn);
 
@@ -212,7 +253,7 @@
                 <div class="dream-card">
                     <div class="dream-title">
                         ${escapeHtml(dream.title)}
-                        <span>📖 #${idx+1}</span>
+                        <span>📖 mimpi #${idx+1}</span>
                     </div>
                     <div class="dream-description">${escapeHtml(dream.description)}</div>
                     <div>
