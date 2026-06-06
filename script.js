@@ -1,8 +1,8 @@
 // script.js - Menggunakan Supabase
 
 // =========== KONFIGURASI SUPABASE ===========
-const SUPABASE_URL = "https://ofatbleambihhqbboalh.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mYXRibGVhbWJpaGhxYmJvYWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MzgxMzQsImV4cCI6MjA5NjMxNDEzNH0.FOGqpRUa9Ch0Z7Ilk-yoCkKxs1zrKix_2DxdnTz6OXA";
+const SUPABASE_URL = "https://zwhaimnotbtzpgyzmla.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_ZNq1-6DMkDQ3dyn8dO0Byg_fD3EbI4Q";
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
