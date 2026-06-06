@@ -1,124 +1,158 @@
-// =========== SUARA AI DENGAN CHUNKING (UNTUK TEKS PANJANG) ===========
+// script.js - Fungsi bersama untuk semua halaman
 
-// Fungsi untuk memotong teks panjang kepada bahagian kecil
-function splitTextIntoChunks(text, maxLength = 200) {
-    const chunks = [];
-    let remaining = text;
-    
-    while (remaining.length > 0) {
-        let chunk = remaining.substring(0, maxLength);
-        
-        // Cuba potong pada noktah, koma atau ruang terakhir
-        if (remaining.length > maxLength) {
-            const lastPeriod = chunk.lastIndexOf('.');
-            const lastComma = chunk.lastIndexOf(',');
-            const lastSpace = chunk.lastIndexOf(' ');
-            let cutPoint = maxLength;
-            
-            if (lastPeriod > maxLength / 2) cutPoint = lastPeriod + 1;
-            else if (lastComma > maxLength / 2) cutPoint = lastComma + 1;
-            else if (lastSpace > maxLength / 2) cutPoint = lastSpace;
-            
-            chunk = remaining.substring(0, cutPoint);
-            remaining = remaining.substring(cutPoint);
-        } else {
-            remaining = '';
-        }
-        
-        if (chunk.trim().length > 0) {
-            chunks.push(chunk.trim());
-        }
+// Kunci storage
+const DREAMS_KEY = "buku_mimpi_data";
+const USERS_KEY = "buku_mimpi_users";
+const SESSION_KEY = "buku_mimpi_session";
+const FAVORITES_KEY = "buku_mimpi_favorites";
+
+// Akaun admin tetap
+const ADMIN_USERNAME = "admin";
+const ADMIN_PASSWORD = "68900";
+
+// =========== FUNGSI PENGGUNA ===========
+function loadUsers() {
+    const stored = localStorage.getItem(USERS_KEY);
+    if (stored) {
+        return JSON.parse(stored);
+    } else {
+        const defaultUsers = [{ username: ADMIN_USERNAME, password: ADMIN_PASSWORD }];
+        localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers));
+        return defaultUsers;
     }
-    
-    return chunks;
 }
 
-// Fungsi untuk membaca teks panjang (auto chunk)
-async function speakLongText(text, statusElementId) {
-    if (!window.speechSynthesis) {
-        if (statusElementId) {
-            document.getElementById(statusElementId).innerHTML = "❌ Browser tidak menyokong speech";
-        }
+function saveUsers(users) {
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+function isLoggedIn() {
+    return localStorage.getItem(SESSION_KEY) === "logged_in";
+}
+
+function getCurrentUser() {
+    return localStorage.getItem("buku_mimpi_current_user");
+}
+
+function logout() {
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem("buku_mimpi_current_user");
+    window.location.href = "index.html";
+}
+
+// =========== FUNGSI MIMPI ===========
+function loadDreams() {
+    const stored = localStorage.getItem(DREAMS_KEY);
+    if (stored) {
+        return JSON.parse(stored);
+    }
+    return [];
+}
+
+function saveDreams(dreams) {
+    localStorage.setItem(DREAMS_KEY, JSON.stringify(dreams));
+}
+
+function addDream(title, description, shortLabel) {
+    const dreams = loadDreams();
+    const newId = Date.now().toString() + "_" + Math.random().toString(36).substr(2, 6);
+    dreams.push({
+        id: newId,
+        title: title.trim(),
+        shortLabel: shortLabel.trim() || title.trim().substring(0, 12),
+        description: description.trim(),
+        createdAt: new Date().toISOString()
+    });
+    saveDreams(dreams);
+    return newId;
+}
+
+function updateDream(id, title, shortLabel, description) {
+    const dreams = loadDreams();
+    const index = dreams.findIndex(d => d.id === id);
+    if (index !== -1) {
+        dreams[index] = { ...dreams[index], title, shortLabel, description };
+        saveDreams(dreams);
+    }
+}
+
+function deleteDream(id) {
+    let dreams = loadDreams();
+    dreams = dreams.filter(d => d.id !== id);
+    saveDreams(dreams);
+}
+
+// =========== FUNGSI FAVORIT ===========
+function getFavorites() {
+    const stored = localStorage.getItem(FAVORITES_KEY);
+    if (stored) {
+        return JSON.parse(stored);
+    }
+    return [];
+}
+
+function addFavorite(dreamId) {
+    let favorites = getFavorites();
+    if (!favorites.includes(dreamId)) {
+        favorites.push(dreamId);
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+    }
+}
+
+function removeFavorite(dreamId) {
+    let favorites = getFavorites();
+    favorites = favorites.filter(id => id !== dreamId);
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+}
+
+function isFavorite(dreamId) {
+    return getFavorites().includes(dreamId);
+}
+
+// =========== SUARA AI ===========
+let preferredVoice = null;
+let voicesLoaded = false;
+
+function initVoice() {
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices.length) return;
+    let male = voices.find(v => v.name.toLowerCase().includes('male') || (v.lang === 'en-US' && v.name.toLowerCase().includes('male')));
+    if (!male) male = voices.find(v => !v.name.toLowerCase().includes('female'));
+    preferredVoice = male || voices[0];
+    voicesLoaded = true;
+}
+
+function speakText(text, statusElementId) {
+    if (!window.speechSynthesis) return;
+    if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'id-ID';
+    utterance.rate = 0.9;
+    if (preferredVoice) utterance.voice = preferredVoice;
+    else if (!voicesLoaded) {
+        window.speechSynthesis.onvoiceschanged = () => {
+            initVoice();
+            if (preferredVoice) utterance.voice = preferredVoice;
+            window.speechSynthesis.speak(utterance);
+        };
         return;
     }
-    
-    // Hentikan bacaan sebelumnya
-    if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-    }
-    
-    // Tunggu sebentar untuk cancel selesai
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    const chunks = splitTextIntoChunks(text, 250);
-    
     if (statusElementId) {
-        const statusEl = document.getElementById(statusElementId);
-        if (chunks.length > 1) {
-            statusEl.innerHTML = `🔊 Membaca (1/${chunks.length})...`;
-        } else {
-            statusEl.innerHTML = "🔊 Membaca...";
-        }
+        utterance.onstart = () => document.getElementById(statusElementId).innerHTML = "🔊 AI membaca...";
+        utterance.onend = () => document.getElementById(statusElementId).innerHTML = "✅ Selesai membaca";
+        utterance.onerror = () => document.getElementById(statusElementId).innerHTML = "⚠️ Gagal membaca";
     }
-    
-    let currentChunkIndex = 0;
-    
-    function speakNextChunk() {
-        if (currentChunkIndex >= chunks.length) {
-            if (statusElementId) {
-                document.getElementById(statusElementId).innerHTML = "✅ Selesai membaca";
-                setTimeout(() => {
-                    const el = document.getElementById(statusElementId);
-                    if (el && el.innerHTML === "✅ Selesai membaca") {
-                        el.innerHTML = "✨ AI siap";
-                    }
-                }, 2000);
-            }
-            return;
-        }
-        
-        const utterance = new SpeechSynthesisUtterance(chunks[currentChunkIndex]);
-        utterance.lang = 'id-ID';
-        utterance.rate = 0.9;
-        utterance.pitch = 1.0;
-        
-        // Pilih suara lelaki
-        if (preferredVoice) {
-            utterance.voice = preferredVoice;
-        } else if (!voicesLoaded) {
-            window.speechSynthesis.onvoiceschanged = () => {
-                initVoice();
-                if (preferredVoice) utterance.voice = preferredVoice;
-                window.speechSynthesis.speak(utterance);
-            };
-            return;
-        }
-        
-        utterance.onstart = () => {
-            if (statusElementId && chunks.length > 1) {
-                document.getElementById(statusElementId).innerHTML = `🔊 Membaca (${currentChunkIndex + 1}/${chunks.length})...`;
-            }
-        };
-        
-        utterance.onend = () => {
-            currentChunkIndex++;
-            speakNextChunk();
-        };
-        
-        utterance.onerror = (e) => {
-            console.error("Speech error:", e);
-            if (statusElementId) {
-                document.getElementById(statusElementId).innerHTML = "⚠️ Gagal membaca, cuba lagi";
-            }
-        };
-        
-        window.speechSynthesis.speak(utterance);
-    }
-    
-    speakNextChunk();
+    window.speechSynthesis.speak(utterance);
 }
 
-// Gantikan fungsi speakText yang asal dengan yang baru
-function speakText(text, statusElementId) {
-    speakLongText(text, statusElementId);
+// =========== HELPER ===========
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+}
+
+function formatDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID');
 }
