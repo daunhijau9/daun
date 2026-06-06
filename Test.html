@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h2>Supabase Test</h2>
+    <div id="result">Loading...</div>
+    <script>
+        const supabase = window.supabase.createClient(
+            "https://ofatbleambihhqbboalh.supabase.co",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mYXRibGVhbWJpaGhxYmJvYWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MzgxMzQsImV4cCI6MjA5NjMxNDEzNH0.FOGqpRUa9Ch0Z7Ilk-yoCkKxs1zrKix_2DxdnTz6OXA"
+        );
+        
+        async function test() {
+            const { data, error } = await supabase.from('dreams').select('*');
+            if (error) {
+                document.getElementById('result').innerHTML = `❌ Error: ${error.message}`;
+            } else {
+                document.getElementById('result').innerHTML = `✅ Berjaya! Dapat ${data.length} mimpi.`;
+            }
+        }
+        test();
+    </script>
+</body>
+</html>
