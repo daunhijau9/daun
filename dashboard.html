@@ -5,306 +5,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Buku Mimpi - Panel Admin</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        .admin-panel {
-            background: #f7efdf;
-            border-radius: 1.5rem;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .admin-panel h3 {
-            color: #4b2e1a;
-            margin-bottom: 1rem;
-            border-bottom: 2px solid #e6b450;
-            padding-bottom: 0.5rem;
-        }
-        .form-group {
-            margin-bottom: 0.8rem;
-        }
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            color: #5a3e28;
-            font-size: 0.85rem;
-            margin-bottom: 0.2rem;
-        }
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 0.6rem;
-            border-radius: 1rem;
-            border: 1px solid #e2caa4;
-            background: #fffdf9;
-            font-family: inherit;
-        }
-        .button-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 1rem;
-        }
-        /* Tabs dalam admin */
-        .admin-tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid #e2caa4;
-            padding-bottom: 0.5rem;
-        }
-        .admin-tab {
-            background: #5e422b;
-            border: none;
-            padding: 0.5rem 1.2rem;
-            border-radius: 2rem;
-            color: #ffefcf;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .admin-tab.active {
-            background: #ffefcf;
-            color: #3e2a1f;
-        }
-        .admin-section {
-            display: none;
-        }
-        .admin-section.active-section {
-            display: block;
-        }
-        /* Senarai Pengguna */
-        .user-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .user-item {
-            background: #fffaf2;
-            padding: 0.8rem 1rem;
-            border-radius: 1rem;
-            border: 1px solid #f3dfbc;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .user-info {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .user-username {
-            font-weight: 700;
-            color: #4b2e1a;
-        }
-        .user-date {
-            font-size: 0.7rem;
-            color: #7a5a3a;
-        }
-        .user-badge {
-            background: #d4a017;
-            color: #2c1e12;
-            font-size: 0.6rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 1rem;
-            margin-left: 0.5rem;
-        }
-        .user-actions {
-            display: flex;
-            gap: 8px;
-        }
-        .user-actions button {
-            padding: 0.3rem 0.8rem;
-            border-radius: 1.5rem;
-            border: none;
-            cursor: pointer;
-            font-size: 0.7rem;
-        }
-        .edit-user-btn { background: #f5b042; color: #2c1e12; }
-        .delete-user-btn { background: #aa6f5e; color: white; }
-        
-        /* Senarai Mimpi */
-        .dream-list-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #fffaf2;
-            padding: 0.8rem 1rem;
-            border-radius: 1rem;
-            margin-bottom: 0.5rem;
-            border: 1px solid #f3dfbc;
-        }
-        .dream-actions {
-            display: flex;
-            gap: 8px;
-        }
-        .dream-actions button {
-            padding: 0.3rem 0.8rem;
-            border-radius: 1.5rem;
-            border: none;
-            cursor: pointer;
-            font-size: 0.7rem;
-        }
-        .edit-dream-btn { background: #f5b042; color: #2c1e12; }
-        .delete-dream-btn { background: #aa6f5e; color: white; }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background: #fffaf2;
-            max-width: 500px;
-            width: 90%;
-            border-radius: 1.5rem;
-            padding: 1.5rem;
-        }
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 1rem;
-        }
-        .btn-small {
-            padding: 0.4rem 1rem;
-            font-size: 0.8rem;
-        }
+        .admin-panel { background: #f7efdf; border-radius: 1.5rem; padding: 1.5rem; margin-bottom: 2rem; }
+        .admin-panel h3 { color: #4b2e1a; margin-bottom: 1rem; border-bottom: 2px solid #e6b450; padding-bottom: 0.5rem; }
+        .form-group { margin-bottom: 0.8rem; }
+        .form-group label { display: block; font-weight: 600; color: #5a3e28; font-size: 0.85rem; margin-bottom: 0.2rem; }
+        .form-group input, .form-group textarea { width: 100%; padding: 0.6rem; border-radius: 1rem; border: 1px solid #e2caa4; background: #fffdf9; font-family: inherit; }
+        .button-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 1rem; }
+        .admin-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid #e2caa4; padding-bottom: 0.5rem; }
+        .admin-tab { background: #5e422b; border: none; padding: 0.5rem 1.2rem; border-radius: 2rem; color: #ffefcf; cursor: pointer; font-weight: bold; }
+        .admin-tab.active { background: #ffefcf; color: #3e2a1f; }
+        .admin-section { display: none; }
+        .admin-section.active-section { display: block; }
+        .user-list, .dream-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 400px; overflow-y: auto; }
+        .user-item, .dream-list-item { background: #fffaf2; padding: 0.8rem 1rem; border-radius: 1rem; border: 1px solid #f3dfbc; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .user-username { font-weight: 700; color: #4b2e1a; }
+        .user-date { font-size: 0.7rem; color: #7a5a3a; }
+        .user-badge { background: #d4a017; color: #2c1e12; font-size: 0.6rem; padding: 0.2rem 0.5rem; border-radius: 1rem; margin-left: 0.5rem; }
+        .user-actions button, .dream-actions button { padding: 0.3rem 0.8rem; border-radius: 1.5rem; border: none; cursor: pointer; font-size: 0.7rem; }
+        .edit-user-btn, .edit-dream-btn { background: #f5b042; color: #2c1e12; }
+        .delete-user-btn, .delete-dream-btn { background: #aa6f5e; color: white; }
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: #fffaf2; max-width: 500px; width: 90%; border-radius: 1.5rem; padding: 1.5rem; }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem; }
+        .btn-small { padding: 0.4rem 1rem; font-size: 0.8rem; }
     </style>
 </head>
 <body>
-    <!-- BUTANG HAMBURGER (MOBILE) -->
     <button class="hamburger" id="hamburgerBtn">☰</button>
     <div class="overlay" id="overlay"></div>
-
-    <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h2>📖 BUKU MIMPI</h2>
-            <p>Karangan mimpi-mimpi</p>
-        </div>
+        <div class="sidebar-header"><h2>📖 BUKU MIMPI</h2><p>Karangan mimpi-mimpi</p></div>
         <div class="sidebar-menu">
-            <a href="index.html" class="menu-item">
-                <i>🏠</i> <span>Home</span>
-            </a>
-            <div class="menu-item active">
-                <i>👑</i> <span>Panel Admin</span>
-            </div>
-            <div class="menu-item" id="logoutLink">
-                <i>🚪</i> <span>Logout</span>
-            </div>
+            <a href="index.html" class="menu-item"><i>🏠</i> <span>Home</span></a>
+            <div class="menu-item active"><i>👑</i> <span>Panel Admin</span></div>
+            <div class="menu-item" id="logoutLink"><i>🚪</i> <span>Logout</span></div>
         </div>
-        <div class="sidebar-footer">
-            <p>✦ Admin Panel ✦</p>
-        </div>
+        <div class="sidebar-footer"><p>✦ Admin Panel ✦</p></div>
     </div>
 
-    <!-- KANDUNGAN UTAMA -->
     <div class="main-content">
-        <!-- Panel Admin -->
         <div class="admin-panel">
             <div class="admin-tabs">
                 <button class="admin-tab active" data-tab="dreams">📜 Urus Mimpi</button>
                 <button class="admin-tab" data-tab="users">👥 Urus Pengguna</button>
                 <button class="admin-tab" data-tab="import">📦 Import Pukal</button>
             </div>
-            
-            <!-- TAB URUS MIMPI -->
             <div id="dreamsTab" class="admin-section active-section">
                 <h3>✍️ Tambah Mimpi Baru</h3>
-                <div class="form-group">
-                    <label>🌟 Tajuk Mimpi</label>
-                    <input type="text" id="newTitle" placeholder="Contoh: Terbang ke Bulan">
-                </div>
-                <div class="form-group">
-                    <label>📝 Cerita Mimpi</label>
-                    <textarea id="newDesc" rows="4" placeholder="Tuliskan detail mimpimu..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>🏷️ Label pendek (opsional)</label>
-                    <input type="text" id="newShort" placeholder="Misal: 'Terbang'" maxlength="14">
-                </div>
+                <div class="form-group"><label>🌟 Tajuk Mimpi</label><input type="text" id="newTitle" placeholder="Contoh: Terbang ke Bulan"></div>
+                <div class="form-group"><label>📝 Cerita Mimpi</label><textarea id="newDesc" rows="4" placeholder="Tuliskan detail mimpimu..."></textarea></div>
+                <div class="form-group"><label>🏷️ Label pendek (opsional)</label><input type="text" id="newShort" placeholder="Misal: 'Terbang'" maxlength="14"></div>
                 <button class="btn" id="postDreamBtn">📌 Post Mimpi</button>
-                
-                <h3 style="margin-top: 2rem;">📜 Senarai Semua Mimpi</h3>
-                <div class="dream-list" id="dreamList">
-                    <div class="empty-message">Loading mimpi...</div>
-                </div>
+                <h3 style="margin-top:2rem;">📜 Senarai Semua Mimpi</h3>
+                <div class="dream-list" id="dreamList"><div class="empty-message">Loading mimpi...</div></div>
             </div>
-            
-            <!-- TAB URUS PENGGUNA -->
             <div id="usersTab" class="admin-section">
                 <h3>👥 Senarai Pengguna Berdaftar</h3>
-                <div class="user-list" id="userList">
-                    <div class="empty-message">Loading pengguna...</div>
-                </div>
-                <p style="font-size:0.7rem; margin-top:1rem; color:#7a5a3a;">
-                    ⚠️ Nota: Akaun admin (username: admin) tidak boleh dihapus atau diedit username.
-                </p>
+                <div class="user-list" id="userList"><div class="empty-message">Loading pengguna...</div></div>
+                <p style="font-size:0.7rem; margin-top:1rem; color:#7a5a3a;">⚠️ Akaun admin tidak boleh dihapus atau diedit username.</p>
             </div>
-            
-            <!-- TAB IMPORT -->
             <div id="importTab" class="admin-section">
                 <h3>📦 Import Pukal Mimpi (JSON)</h3>
-                <div class="form-group">
-                    <label>Masukkan senarai mimpi dalam format JSON:</label>
-                    <textarea id="bulkJson" rows="8" placeholder='[{"title":"Mimpi 1","shortLabel":"M1","description":"Cerita..."}]'></textarea>
-                </div>
+                <div class="form-group"><label>Masukkan senarai mimpi dalam format JSON:</label><textarea id="bulkJson" rows="8" placeholder='[{"title":"Mimpi 1","shortLabel":"M1","description":"Cerita..."}]'></textarea></div>
                 <button class="btn" id="confirmBulkBtn">Import Sekarang</button>
             </div>
         </div>
-        
-        <div class="footer">
-            🎙️ Suara AI lelaki | Panel Admin
-        </div>
+        <div class="footer">🎙️ Suara AI lelaki | Panel Admin - Data di awan (Supabase)</div>
     </div>
 
-    <!-- MODAL EDIT PENGGUNA -->
-    <div id="editUserModal" class="modal">
-        <div class="modal-content">
-            <h3>✏️ Edit Pengguna</h3>
-            <div class="form-group">
-                <label>Nama Pengguna</label>
-                <input type="text" id="editUsername" placeholder="Username">
-            </div>
-            <div class="form-group">
-                <label>Kata Laluan Baru (biarkan kosong jika tidak mahu tukar)</label>
-                <input type="password" id="editPassword" placeholder="Kata laluan baru">
-            </div>
-            <div class="modal-buttons">
-                <button class="btn btn-small" id="cancelEditUserBtn">Batal</button>
-                <button class="btn btn-small" id="saveEditUserBtn">Simpan</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL EDIT MIMPI -->
-    <div id="editDreamModal" class="modal">
-        <div class="modal-content">
-            <h3>✏️ Edit Mimpi</h3>
-            <div class="form-group">
-                <label>Tajuk</label>
-                <input type="text" id="editDreamTitle">
-            </div>
-            <div class="form-group">
-                <label>Label pendek</label>
-                <input type="text" id="editDreamShort">
-            </div>
-            <div class="form-group">
-                <label>Cerita</label>
-                <textarea id="editDreamDesc" rows="5"></textarea>
-            </div>
-            <div class="modal-buttons">
-                <button class="btn btn-small" id="cancelEditDreamBtn">Batal</button>
-                <button class="btn btn-small" id="saveEditDreamBtn">Simpan</button>
-            </div>
-        </div>
-    </div>
+    <!-- Modals -->
+    <div id="editUserModal" class="modal"><div class="modal-content"><h3>✏️ Edit Pengguna</h3><div class="form-group"><label>Nama Pengguna</label><input type="text" id="editUsername"></div><div class="form-group"><label>Kata Laluan Baru (kosong jika tidak tukar)</label><input type="password" id="editPassword"></div><div class="modal-buttons"><button class="btn btn-small" id="cancelEditUserBtn">Batal</button><button class="btn btn-small" id="saveEditUserBtn">Simpan</button></div></div></div>
+    <div id="editDreamModal" class="modal"><div class="modal-content"><h3>✏️ Edit Mimpi</h3><div class="form-group"><label>Tajuk</label><input type="text" id="editDreamTitle"></div><div class="form-group"><label>Label pendek</label><input type="text" id="editDreamShort"></div><div class="form-group"><label>Cerita</label><textarea id="editDreamDesc" rows="5"></textarea></div><div class="modal-buttons"><button class="btn btn-small" id="cancelEditDreamBtn">Batal</button><button class="btn btn-small" id="saveEditDreamBtn">Simpan</button></div></div></div>
 
     <script src="script.js"></script>
     <script>
@@ -312,95 +85,59 @@
         let usersData = [];
         let editingUserId = null;
         let editingDreamId = null;
-        
-        // =========== FUNGSI SIDEBAR ===========
-        function closeSidebar() {
-            document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('overlay').classList.remove('active');
-        }
-        function openSidebar() {
-            document.getElementById('sidebar').classList.add('open');
-            document.getElementById('overlay').classList.add('active');
-        }
+
+        // Sidebar & auth check
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('active'); }
+        function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('active'); }
         document.getElementById('hamburgerBtn').onclick = openSidebar;
         document.getElementById('overlay').onclick = closeSidebar;
         document.getElementById('logoutLink').onclick = () => logout();
-        
-        // =========== TUKAR TAB ===========
+
+        // Admin check
+        if (!isLoggedIn() || localStorage.getItem("buku_mimpi_current_user") !== "admin") {
+            window.location.href = "login.html";
+        }
+
+        // Tabs
         document.querySelectorAll('.admin-tab').forEach(tab => {
             tab.onclick = () => {
                 document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
-                document.querySelectorAll('.admin-section').forEach(section => section.classList.remove('active-section'));
+                document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active-section'));
                 document.getElementById(`${tab.getAttribute('data-tab')}Tab`).classList.add('active-section');
             };
         });
-        
-        // =========== FUNGSI PENGGUNA ===========
-        function loadUsers() {
-            const stored = localStorage.getItem(USERS_KEY);
-            if (stored) {
-                usersData = JSON.parse(stored);
-            } else {
-                usersData = [{ username: ADMIN_USERNAME, password: ADMIN_PASSWORD, createdAt: new Date().toISOString() }];
-                localStorage.setItem(USERS_KEY, JSON.stringify(usersData));
-            }
+
+        // Users
+        async function loadUsersList() {
+            const data = await loadUsers();
+            usersData = data;
             renderUserList();
         }
-        
-        function saveUsers() {
-            localStorage.setItem(USERS_KEY, JSON.stringify(usersData));
-        }
-        
         function renderUserList() {
-            const userListDiv = document.getElementById('userList');
-            if (usersData.length === 0) {
-                userListDiv.innerHTML = '<div class="empty-message">✨ Tiada pengguna ✨</div>';
-                return;
-            }
-            
-            userListDiv.innerHTML = '';
-            usersData.forEach(user => {
+            const container = document.getElementById('userList');
+            if (!usersData.length) { container.innerHTML = '<div class="empty-message">✨ Tiada pengguna ✨</div>'; return; }
+            container.innerHTML = '';
+            for (const user of usersData) {
                 const isAdmin = (user.username === ADMIN_USERNAME);
-                const item = document.createElement('div');
-                item.className = 'user-item';
-                item.innerHTML = `
-                    <div class="user-info">
-                        <div class="user-username">
-                            ${escapeHtml(user.username)}
-                            ${isAdmin ? '<span class="user-badge">Admin</span>' : ''}
-                        </div>
-                        <div class="user-date">📅 Daftar: ${formatDate(user.createdAt) || 'Tarikh tidak diketahui'}</div>
-                    </div>
-                    <div class="user-actions">
-                        ${!isAdmin ? `<button class="edit-user-btn" data-id="${user.username}">✏️ Edit</button>` : ''}
-                        ${!isAdmin ? `<button class="delete-user-btn" data-id="${user.username}">🗑️ Hapus</button>` : ''}
-                    </div>
+                const div = document.createElement('div');
+                div.className = 'user-item';
+                div.innerHTML = `
+                    <div class="user-info"><div class="user-username">${escapeHtml(user.username)}${isAdmin ? '<span class="user-badge">Admin</span>' : ''}</div><div class="user-date">📅 Daftar: ${formatDate(user.created_at) || 'Tarikh tidak diketahui'}</div></div>
+                    <div class="user-actions">${!isAdmin ? `<button class="edit-user-btn" data-id="${user.username}">✏️ Edit</button><button class="delete-user-btn" data-id="${user.username}">🗑️ Hapus</button>` : ''}</div>
                 `;
-                userListDiv.appendChild(item);
-            });
-            
-            // Event untuk edit user (bukan admin)
-            document.querySelectorAll('.edit-user-btn').forEach(btn => {
-                btn.onclick = () => openEditUser(btn.getAttribute('data-id'));
-            });
-            
-            // Event untuk delete user
-            document.querySelectorAll('.delete-user-btn').forEach(btn => {
-                btn.onclick = () => {
-                    const username = btn.getAttribute('data-id');
-                    if (confirm(`Hapus akaun "${username}"? Tindakan ini tidak boleh dibatalkan.`)) {
-                        usersData = usersData.filter(u => u.username !== username);
-                        saveUsers();
-                        loadUsers();
-                        // Juga padam favorit pengguna tersebut
-                        const favoritesKey = `buku_mimpi_favorites_${username}`;
-                        localStorage.removeItem(favoritesKey);
-                    }
-                };
+                container.appendChild(div);
+            }
+            document.querySelectorAll('.edit-user-btn').forEach(btn => btn.onclick = () => openEditUser(btn.getAttribute('data-id')));
+            document.querySelectorAll('.delete-user-btn').forEach(btn => btn.onclick = async () => {
+                const username = btn.getAttribute('data-id');
+                if (confirm(`Hapus akaun "${username}"?`)) {
+                    await supabase.from('users').delete().eq('username', username);
+                    await supabase.from('favorites').delete().eq('username', username);
+                    await loadUsersList();
+                }
             });
         }
-        
         function openEditUser(username) {
             const user = usersData.find(u => u.username === username);
             if (!user) return;
@@ -409,162 +146,123 @@
             document.getElementById('editPassword').value = '';
             document.getElementById('editUserModal').style.display = 'flex';
         }
-        
-        function saveEditUser() {
+        async function saveEditUser() {
             if (!editingUserId) return;
             const newUsername = document.getElementById('editUsername').value.trim();
             const newPassword = document.getElementById('editPassword').value;
-            
-            if (!newUsername) {
-                alert("Nama pengguna tidak boleh kosong!");
-                return;
+            if (!newUsername) { alert("Nama pengguna tidak boleh kosong!"); return; }
+            if (newUsername !== editingUserId) {
+                const { data: existing } = await supabase.from('users').select('username').eq('username', newUsername);
+                if (existing && existing.length) { alert("Nama pengguna sudah wujud!"); return; }
             }
-            
-            // Semak jika username baru sudah wujud (kecuali username sendiri)
-            if (newUsername !== editingUserId && usersData.find(u => u.username === newUsername)) {
-                alert("Nama pengguna sudah wujud!");
-                return;
-            }
-            
-            const userIndex = usersData.findIndex(u => u.username === editingUserId);
-            if (userIndex !== -1) {
-                usersData[userIndex].username = newUsername;
-                if (newPassword) {
-                    usersData[userIndex].password = newPassword;
-                }
-                saveUsers();
-                
-                // Kemas kini session jika pengguna yang sedang login
+            const updateData = { username: newUsername };
+            if (newPassword) updateData.password = newPassword;
+            await supabase.from('users').update(updateData).eq('username', editingUserId);
+            if (newUsername !== editingUserId) {
+                await supabase.from('favorites').update({ username: newUsername }).eq('username', editingUserId);
                 const currentUser = localStorage.getItem("buku_mimpi_current_user");
-                if (currentUser === editingUserId) {
-                    localStorage.setItem("buku_mimpi_current_user", newUsername);
-                }
+                if (currentUser === editingUserId) localStorage.setItem("buku_mimpi_current_user", newUsername);
             }
-            
             document.getElementById('editUserModal').style.display = 'none';
             editingUserId = null;
-            loadUsers();
+            await loadUsersList();
             alert("Pengguna berjaya dikemas kini!");
         }
-        
-        // =========== FUNGSI MIMPI ===========
-        function loadDreamsData() {
-            dreamsData = loadDreams();
+
+        // Dreams
+        async function loadDreamsList() {
+            dreamsData = await loadDreams();
             renderDreamList();
         }
-        
         function renderDreamList() {
-            const dreamListDiv = document.getElementById('dreamList');
-            if (dreamsData.length === 0) {
-                dreamListDiv.innerHTML = '<div class="empty-message">✨ Belum ada mimpi. Tambah mimpi pertama!</div>';
-                return;
+            const container = document.getElementById('dreamList');
+            if (!dreamsData.length) { container.innerHTML = '<div class="empty-message">✨ Belum ada mimpi. Tambah mimpi pertama!</div>'; return; }
+            container.innerHTML = '';
+            for (const dream of dreamsData) {
+                const div = document.createElement('div');
+                div.className = 'dream-list-item';
+                div.innerHTML = `<div class="dream-list-title">${escapeHtml(dream.title)}</div><div class="dream-actions"><button class="edit-dream-btn" data-id="${dream.id}">✏️ Edit</button><button class="delete-dream-btn" data-id="${dream.id}">🗑️ Hapus</button></div>`;
+                container.appendChild(div);
             }
-            
-            dreamListDiv.innerHTML = '';
-            dreamsData.forEach((dream, idx) => {
-                const item = document.createElement('div');
-                item.className = 'dream-list-item';
-                item.innerHTML = `
-                    <div class="dream-list-title">${escapeHtml(dream.title)}</div>
-                    <div class="dream-actions">
-                        <button class="edit-dream-btn" data-id="${dream.id}">✏️ Edit</button>
-                        <button class="delete-dream-btn" data-id="${dream.id}">🗑️ Hapus</button>
-                    </div>
-                `;
-                dreamListDiv.appendChild(item);
-            });
-            
-            document.querySelectorAll('.edit-dream-btn').forEach(btn => {
-                btn.onclick = () => openEditDream(btn.getAttribute('data-id'));
-            });
-            document.querySelectorAll('.delete-dream-btn').forEach(btn => {
-                btn.onclick = () => {
-                    if (confirm("Padam mimpi ini?")) {
-                        deleteDream(btn.getAttribute('data-id'));
-                        loadDreamsData();
-                    }
-                };
+            document.querySelectorAll('.edit-dream-btn').forEach(btn => btn.onclick = () => openEditDream(btn.getAttribute('data-id')));
+            document.querySelectorAll('.delete-dream-btn').forEach(btn => btn.onclick = async () => {
+                if (confirm("Padam mimpi ini?")) {
+                    await deleteDream(btn.getAttribute('data-id'));
+                    await loadDreamsList();
+                }
             });
         }
-        
         function openEditDream(id) {
             const dream = dreamsData.find(d => d.id === id);
             if (!dream) return;
             editingDreamId = id;
             document.getElementById('editDreamTitle').value = dream.title;
-            document.getElementById('editDreamShort').value = dream.shortLabel || '';
+            document.getElementById('editDreamShort').value = dream.short_label || '';
             document.getElementById('editDreamDesc').value = dream.description;
             document.getElementById('editDreamModal').style.display = 'flex';
         }
-        
-        function saveEditDream() {
+        async function saveEditDream() {
             if (!editingDreamId) return;
             const newTitle = document.getElementById('editDreamTitle').value.trim();
             const newShort = document.getElementById('editDreamShort').value.trim();
             const newDesc = document.getElementById('editDreamDesc').value.trim();
             if (!newTitle || !newDesc) { alert("Tajuk dan cerita wajib!"); return; }
-            updateDream(editingDreamId, newTitle, newShort || newTitle.substring(0,12), newDesc);
-            loadDreamsData();
+            await updateDream(editingDreamId, newTitle, newShort || newTitle.substring(0,12), newDesc);
+            await loadDreamsList();
             document.getElementById('editDreamModal').style.display = 'none';
             editingDreamId = null;
             alert("Mimpi berjaya dikemas kini!");
         }
-        
-        function postDream() {
+        async function postDream() {
             const title = document.getElementById('newTitle').value;
             const desc = document.getElementById('newDesc').value;
             const short = document.getElementById('newShort').value;
             if (!title.trim() || !desc.trim()) { alert("Tajuk dan cerita wajib!"); return; }
-            addDream(title, desc, short);
+            await addDream(title, desc, short);
             document.getElementById('newTitle').value = '';
             document.getElementById('newDesc').value = '';
             document.getElementById('newShort').value = '';
-            loadDreamsData();
+            await loadDreamsList();
             alert("Mimpi ditambah!");
         }
-        
-        function confirmBulkImport() {
+        async function confirmBulkImport() {
             const jsonText = document.getElementById('bulkJson').value.trim();
             if (!jsonText) { alert("Masukkan JSON"); return; }
             try {
                 const parsed = JSON.parse(jsonText);
                 let added = 0;
-                for (let item of parsed) {
+                for (const item of parsed) {
                     if (item.title && item.description) {
-                        addDream(item.title, item.description, item.shortLabel || '');
+                        await addDream(item.title, item.description, item.shortLabel || '');
                         added++;
                     }
                 }
                 document.getElementById('bulkJson').value = '';
-                loadDreamsData();
+                await loadDreamsList();
                 alert(`Berjaya import ${added} mimpi.`);
             } catch(e) { alert("JSON tidak sah: " + e.message); }
         }
-        
-        // =========== SEMAKAN ADMIN ===========
-        if (localStorage.getItem(SESSION_KEY) !== "logged_in" || localStorage.getItem("buku_mimpi_current_user") !== "admin") {
-            window.location.href = "login.html";
-        }
-        
-        // =========== INIT ===========
+
         document.getElementById('postDreamBtn').onclick = postDream;
         document.getElementById('confirmBulkBtn').onclick = confirmBulkImport;
         document.getElementById('cancelEditUserBtn').onclick = () => document.getElementById('editUserModal').style.display = 'none';
         document.getElementById('saveEditUserBtn').onclick = saveEditUser;
         document.getElementById('cancelEditDreamBtn').onclick = () => document.getElementById('editDreamModal').style.display = 'none';
         document.getElementById('saveEditDreamBtn').onclick = saveEditDream;
-        
         window.onclick = (e) => {
             if (e.target === document.getElementById('editUserModal')) document.getElementById('editUserModal').style.display = 'none';
             if (e.target === document.getElementById('editDreamModal')) document.getElementById('editDreamModal').style.display = 'none';
         };
-        
-        loadDreamsData();
-        loadUsers();
-        
-        // Tutup sidebar bila klik pautan
-        document.querySelectorAll('.menu-item').forEach(item => {
-            item.onclick = () => { if (window.innerWidth <= 768) closeSidebar(); };
+
+        // Init
+        window.addEventListener('load', async () => {
+            await loadDreamsList();
+            await loadUsersList();
+            if (window.speechSynthesis) {
+                if (window.speechSynthesis.getVoices().length) initVoice();
+                else window.speechSynthesis.onvoiceschanged = initVoice;
+            }
+            document.querySelectorAll('.menu-item').forEach(item => { item.onclick = () => { if (window.innerWidth <= 768) closeSidebar(); }; });
         });
     </script>
 </body>
