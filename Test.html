@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -539,3 +538,47 @@
     function confirmBulk() {
         const json = document.getElementById('bulkJson').value.trim();
         if (!json) return alert("Masukkan JSON");
+        try {
+            const parsed = JSON.parse(json);
+            if (bulkImport(parsed)) {
+                document.getElementById('bulkJson').value = '';
+                closeBulk();
+            }
+        } catch(e) { alert("JSON tidak sah: " + e.message); }
+    }
+    
+    // =========== INIT ===========
+    window.addEventListener('load', () => {
+        checkSession();
+        loadDreams();
+        if (window.speechSynthesis) {
+            if (window.speechSynthesis.getVoices().length) initVoice();
+            else window.speechSynthesis.onvoiceschanged = initVoice;
+        }
+        
+        document.getElementById('postDreamBtn').onclick = () => {
+            const title = document.getElementById('newTitle').value;
+            const desc = document.getElementById('newDesc').value;
+            const short = document.getElementById('newShort').value;
+            if (addDream(title, desc, short)) {
+                document.getElementById('newTitle').value = '';
+                document.getElementById('newDesc').value = '';
+                document.getElementById('newShort').value = '';
+                alert("Mimpi ditambah!");
+            }
+        };
+        
+        document.getElementById('bulkImportBtn').onclick = openBulk;
+        document.getElementById('confirmBulkBtn').onclick = confirmBulk;
+        document.getElementById('cancelBulkBtn').onclick = closeBulk;
+        document.getElementById('cancelEditBtn').onclick = closeEdit;
+        document.getElementById('saveEditBtn').onclick = saveEdit;
+        
+        window.onclick = (e) => {
+            if (e.target === document.getElementById('bulkModal')) closeBulk();
+            if (e.target === document.getElementById('editModal')) closeEdit();
+        };
+    });
+</script>
+</body>
+</html>
