@@ -53,32 +53,32 @@
         }
         .error { background: #ffe0e0; color: #aa2e2e; }
         .success { background: #e0ffe0; color: #2e6a2e; }
-        .sidebar {
-            position: relative;
-            width: 260px;
-        }
+        
+        /* Override untuk halaman login */
         .main-content {
             margin-left: 0;
-            flex: 1;
-        }
-        body {
-            display: flex;
+            padding-top: 1rem;
         }
         @media (max-width: 768px) {
-            .sidebar { width: 70px; }
-            .sidebar-header h2, .sidebar-header p, .menu-item span { display: none; }
-            .menu-item { justify-content: center; }
+            .main-content {
+                padding-top: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="sidebar">
+    <!-- BUTANG HAMBURGER (MOBILE) -->
+    <button class="hamburger" id="hamburgerBtn">☰</button>
+    <div class="overlay" id="overlay"></div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h2>📖 BUKU MIMPI</h2>
             <p>Karangan mimpi-mimpi</p>
         </div>
         <div class="sidebar-menu">
-            <a href="index.html" class="menu-item">
+            <a href="index.html" class="menu-item" id="homeLink">
                 <i>🏠</i> <span>Home</span>
             </a>
             <div class="menu-item active">
@@ -93,7 +93,7 @@
     <div class="main-content">
         <div class="login-container">
             <div class="login-card">
-                <h2>🔐 Log Masuk</h2>
+                <h2>🔐 Log Masuk Admin</h2>
                 <div class="form-group">
                     <label>👤 Nama Pengguna</label>
                     <input type="text" id="loginUsername" placeholder="admin">
@@ -110,6 +110,20 @@
 
     <script src="script.js"></script>
     <script>
+        // Fungsi sidebar
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('overlay').classList.remove('active');
+        }
+        function openSidebar() {
+            document.getElementById('sidebar').classList.add('open');
+            document.getElementById('overlay').classList.add('active');
+        }
+        document.getElementById('hamburgerBtn').onclick = openSidebar;
+        document.getElementById('overlay').onclick = closeSidebar;
+        document.getElementById('homeLink').onclick = closeSidebar;
+        
+        // Login
         document.getElementById('doLoginBtn').addEventListener('click', () => {
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value;
@@ -129,7 +143,6 @@
             }
         });
         
-        // Redirect if already logged in
         if (localStorage.getItem(SESSION_KEY) === "logged_in") {
             window.location.href = "dashboard.html";
         }
