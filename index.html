@@ -1,0 +1,770 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Buku Mimpi - Karangan Sendiri (Import Pukal)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, 'Roboto', sans-serif;
+            background: linear-gradient(145deg, #1e2a3a 0%, #0f1724 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+        }
+
+        .dream-book {
+            max-width: 950px;
+            width: 100%;
+            background: rgba(255, 248, 235, 0.95);
+            border-radius: 2rem;
+            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 215, 150, 0.3);
+            overflow: hidden;
+            margin: 1rem;
+        }
+
+        .book-header {
+            background: #2c1e12;
+            padding: 1rem 1rem;
+            text-align: center;
+            border-bottom: 3px solid #e6b450;
+        }
+
+        .book-header h1 {
+            font-size: 1.6rem;
+            letter-spacing: 1px;
+            color: #fae67a;
+            text-shadow: 2px 2px 0 #5a3e1f;
+            font-weight: 700;
+        }
+
+        .book-header p {
+            color: #ecd9b4;
+            margin-top: 0.3rem;
+            font-style: italic;
+            font-size: 0.8rem;
+        }
+
+        .tab-nav {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+            background: #3e2a1f;
+            gap: 0.25rem;
+            padding: 0.6rem 0.6rem 0 0.6rem;
+            border-bottom: 1px solid #cdb28b;
+            scrollbar-width: thin;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab-nav::-webkit-scrollbar {
+            height: 4px;
+        }
+        .tab-nav::-webkit-scrollbar-track {
+            background: #5e422b;
+            border-radius: 10px;
+        }
+        .tab-nav::-webkit-scrollbar-thumb {
+            background: #f5b042;
+            border-radius: 10px;
+        }
+
+        .tab-btn {
+            background: #5e422b;
+            border: none;
+            padding: 0.5rem 0.9rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #ffefcf;
+            cursor: pointer;
+            border-radius: 1rem 1rem 0 0;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .tab-btn:hover {
+            background: #7b5a3c;
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: #ffefcf;
+            color: #3e2a1f;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+            border-bottom: 2px solid #ffb347;
+        }
+
+        .tab-content-container {
+            background: #ffefcf;
+            padding: 1rem;
+            min-height: 300px;
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeSlide 0.25s ease-out;
+        }
+
+        .tab-pane.active-pane {
+            display: block;
+        }
+
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dream-card {
+            background: #fffaf2;
+            border-radius: 1.5rem;
+            padding: 1rem;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f3dfbc;
+        }
+
+        .dream-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #4b2e1a;
+            border-left: 5px solid #f5b042;
+            padding-left: 0.7rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .dream-title span {
+            background: #f0dbc0;
+            font-size: 0.65rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 30px;
+            color: #7a521e;
+        }
+
+        .dream-description {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #2e241a;
+            margin: 0.8rem 0 1.2rem 0;
+            text-align: justify;
+            background: #fff6ea;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            white-space: pre-wrap;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .voice-btn, .edit-btn, .delete-btn {
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 2rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.2s;
+        }
+
+        .voice-btn {
+            background: linear-gradient(95deg, #2c5f7a, #1e3e58);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .voice-btn:hover { background: linear-gradient(95deg, #1f4a64, #123247); transform: scale(1.02); }
+
+        .edit-btn {
+            background: #f5b042;
+            color: #2c1e12;
+        }
+        .edit-btn:hover { background: #e09d2c; transform: scale(1.02); }
+
+        .delete-btn {
+            background: #aa6f5e;
+            color: white;
+        }
+        .delete-btn:hover { background: #8b5342; transform: scale(1.02); }
+
+        .speech-status {
+            font-size: 0.65rem;
+            color: #7e6b53;
+            margin-left: 0.2rem;
+        }
+
+        .post-dream-section {
+            background: #f7efdf;
+            border-top: 2px dashed #d6b575;
+            padding: 1rem 1rem;
+        }
+
+        .post-dream-section h3 {
+            color: #4b2e1a;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 0.6rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 0.7rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #5a3e28;
+            margin-bottom: 0.2rem;
+            font-size: 0.85rem;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.6rem;
+            border-radius: 1rem;
+            border: 1px solid #e2caa4;
+            background: #fffdf9;
+            font-family: inherit;
+            font-size: 0.85rem;
+        }
+
+        .btn-post, .btn-bulk {
+            background: #8b6946;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .btn-bulk {
+            background: #4a6741;
+        }
+        .btn-post:hover, .btn-bulk:hover { filter: brightness(1.05); }
+
+        footer {
+            background: #2c1e12;
+            text-align: center;
+            padding: 0.6rem;
+            color: #cbae86;
+            font-size: 0.65rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #fffaf2;
+            max-width: 600px;
+            width: 90%;
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.3);
+        }
+        .modal-content h3 {
+            font-size: 1.3rem;
+            color: #4b2e1a;
+            margin-bottom: 0.8rem;
+        }
+        .modal-content textarea {
+            width: 100%;
+            margin: 0.5rem 0;
+            padding: 0.6rem;
+            border-radius: 1rem;
+            border: 1px solid #d6b575;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 1rem;
+        }
+        .modal-buttons button {
+            padding: 0.4rem 1rem;
+            border-radius: 2rem;
+            border: none;
+            cursor: pointer;
+        }
+        .save-edit, .import-confirm { background: #2c5f7a; color: white; }
+        .cancel-edit, .import-cancel { background: #aa6f5e; color: white; }
+
+        .empty-message {
+            text-align: center;
+            padding: 1.5rem;
+            background: #fff6ea;
+            border-radius: 1.2rem;
+            color: #7a5a3a;
+            font-style: italic;
+        }
+
+        @media (max-width: 550px) {
+            .dream-book { margin: 0.5rem; border-radius: 1.5rem; }
+            .book-header h1 { font-size: 1.3rem; }
+            .book-header { padding: 0.8rem; }
+            .dream-title { font-size: 1.1rem; }
+            .voice-btn, .edit-btn, .delete-btn { padding: 0.4rem 0.8rem; font-size: 0.7rem; }
+            .tab-btn { padding: 0.4rem 0.7rem; font-size: 0.7rem; }
+            body { justify-content: flex-start; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+<div class="dream-book">
+    <div class="book-header">
+        <h1>📖  BUKU MIMPI  📖</h1>
+        <p>✦  Karangan mimpi-mimpi  ✦  Setiap tab adalah dunia tersendiri  ✦  Import pukal disokong</p>
+    </div>
+
+    <div class="tab-nav" id="tabNav"></div>
+    <div class="tab-content-container" id="tabContent"></div>
+
+    <div class="post-dream-section">
+        <h3>✍️  Tulis & Post Mimpi Baru  ✍️</h3>
+        <div class="button-group">
+            <button class="btn-post" id="postDreamBtn">📌  Post Satu Mimpi</button>
+            <button class="btn-bulk" id="bulkImportBtn">📦  Import Pukal (JSON)</button>
+        </div>
+        <div class="form-group">
+            <label>🌟 Tajuk Mimpi</label>
+            <input type="text" id="newDreamTitle" placeholder="Contoh: Terbang ke Bulan">
+        </div>
+        <div class="form-group">
+            <label>📝 Cerita Mimpi</label>
+            <textarea id="newDreamDesc" rows="3" placeholder="Tuliskan detail mimpimu..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>🏷️ Label pendek untuk tab (opsional)</label>
+            <input type="text" id="newDreamShort" placeholder="Misal: 'Terbang'" maxlength="14">
+        </div>
+        <p style="font-size:0.65rem; margin-top:0.5rem;">✅ Semua mimpi tersimpan secara automatik. Suara AI: lelaki termoden. Import pukal: masukkan senarai JSON.</p>
+    </div>
+    <footer>🎙️ Suara AI lelaki | ✏️ Edit mimpi | 🗑️ Hapus | 📱 Responsif Android | 📦 Import pukal</footer>
+</div>
+
+<!-- Modal Import Pukal -->
+<div id="bulkModal" class="modal">
+    <div class="modal-content">
+        <h3>📦 Import Pukal Mimpi (JSON)</h3>
+        <label>Masukkan senarai mimpi dalam format JSON:</label>
+        <textarea id="bulkJsonData" rows="8" placeholder='[
+  {
+    "title": "Mimpi 1",
+    "shortLabel": "M1",
+    "description": "Cerita mimpi pertama..."
+  },
+  {
+    "title": "Mimpi 2",
+    "shortLabel": "M2",
+    "description": "Cerita mimpi kedua..."
+  }
+]'></textarea>
+        <div class="modal-buttons">
+            <button class="import-cancel" id="cancelBulkBtn">Batal</button>
+            <button class="import-confirm" id="confirmBulkBtn">Import Sekarang</button>
+        </div>
+    </div>
+</div>
+
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <h3>✏️ Edit Mimpi</h3>
+        <label>Tajuk</label>
+        <input type="text" id="editTitle" placeholder="Tajuk mimpi">
+        <label>Label pendek (tab)</label>
+        <input type="text" id="editShortLabel" placeholder="Label tab">
+        <label>Cerita mimpi</label>
+        <textarea id="editDescription" rows="5" placeholder="Cerita lengkap..."></textarea>
+        <div class="modal-buttons">
+            <button class="cancel-edit" id="cancelEditBtn">Batal</button>
+            <button class="save-edit" id="saveEditBtn">Simpan Perubahan</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const STORAGE_KEY = "dreams_list_final_bulk";
+
+    let dreamsData = [];
+
+    function loadDreamsFromStorage() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            dreamsData = JSON.parse(stored);
+        } else {
+            dreamsData = [];
+            saveDreamsToStorage();
+        }
+    }
+
+    function saveDreamsToStorage() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(dreamsData));
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // Suara AI lelaki termoden
+    let preferredVoice = null;
+    let voicesLoaded = false;
+
+    function initVoiceSelection() {
+        const voices = window.speechSynthesis.getVoices();
+        if (!voices.length) return;
+        let maleVoice = voices.find(voice => 
+            (voice.lang === 'id-ID' && (voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('lelaki'))) ||
+            voice.name.toLowerCase().includes('google uk english male') ||
+            voice.name.toLowerCase().includes('microsoft david') ||
+            voice.name.toLowerCase().includes('microsoft guy') ||
+            (voice.lang === 'en-US' && voice.name.toLowerCase().includes('male')) ||
+            (voice.lang === 'en-GB' && voice.name.toLowerCase().includes('male'))
+        );
+        if (!maleVoice) {
+            maleVoice = voices.find(voice => voice.lang === 'en-US' && voice.name.toLowerCase().includes('male'));
+        }
+        if (!maleVoice) {
+            maleVoice = voices.find(voice => voice.name.toLowerCase().includes('male'));
+        }
+        if (!maleVoice) {
+            maleVoice = voices.find(voice => !voice.name.toLowerCase().includes('female') && !voice.name.toLowerCase().includes('samantha'));
+        }
+        if (maleVoice) {
+            preferredVoice = maleVoice;
+        } else if (voices.length) {
+            preferredVoice = voices[0];
+        }
+        voicesLoaded = true;
+    }
+
+    function speakDream(text, dreamId) {
+        if (!window.speechSynthesis) {
+            alert("Browser anda tidak menyokong Web Speech API.");
+            return;
+        }
+        if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.cancel();
+        }
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'id-ID';
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+        if (preferredVoice) {
+            utterance.voice = preferredVoice;
+        } else if (!voicesLoaded) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                initVoiceSelection();
+                if (preferredVoice) utterance.voice = preferredVoice;
+                window.speechSynthesis.speak(utterance);
+            };
+            return;
+        }
+        utterance.onstart = () => {
+            const span = document.getElementById(`speechStatus-${dreamId}`);
+            if (span) span.innerText = "🔊 AI lelaki membaca...";
+        };
+        utterance.onend = () => {
+            const span = document.getElementById(`speechStatus-${dreamId}`);
+            if (span) { span.innerText = "✅ Selesai"; setTimeout(() => { if(span.innerText === "✅ Selesai") span.innerText = "✨ AI siap"; }, 2000); }
+        };
+        utterance.onerror = () => {
+            const span = document.getElementById(`speechStatus-${dreamId}`);
+            if (span) span.innerText = "⚠️ Gagal";
+        };
+        window.speechSynthesis.speak(utterance);
+    }
+
+    let currentActiveId = null;
+
+    function renderDreamBook() {
+        const tabNav = document.getElementById('tabNav');
+        const tabContent = document.getElementById('tabContent');
+        if (!tabNav || !tabContent) return;
+
+        const activePane = document.querySelector('.tab-pane.active-pane');
+        if (activePane) currentActiveId = activePane.getAttribute('data-pane');
+        else if (dreamsData.length > 0 && !currentActiveId) currentActiveId = dreamsData[0].id;
+
+        tabNav.innerHTML = '';
+        tabContent.innerHTML = '';
+
+        if (dreamsData.length === 0) {
+            tabContent.innerHTML = `<div class="empty-message">✨ Tiada mimpi lagi. Tulis mimpi pertamamu atau import pukal! ✨</div>`;
+            return;
+        }
+
+        dreamsData.forEach((dream, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'tab-btn';
+            if (currentActiveId === dream.id) btn.classList.add('active');
+            btn.setAttribute('data-tab', dream.id);
+            const label = (dream.shortLabel && dream.shortLabel.trim()) ? dream.shortLabel : dream.title.substring(0, 12);
+            btn.innerHTML = `<span>${escapeHtml(label)}</span>`;
+            btn.addEventListener('click', () => activateTab(dream.id));
+            tabNav.appendChild(btn);
+
+            const pane = document.createElement('div');
+            pane.className = 'tab-pane';
+            if (currentActiveId === dream.id) pane.classList.add('active-pane');
+            pane.setAttribute('data-pane', dream.id);
+            pane.innerHTML = `
+                <div class="dream-card">
+                    <div class="dream-title">
+                        ${escapeHtml(dream.title)}
+                        <span>📖 mimpi #${idx+1}</span>
+                    </div>
+                    <div class="dream-description" id="desc-${dream.id}">
+                        ${escapeHtml(dream.description)}
+                    </div>
+                    <div class="action-buttons">
+                        <button class="voice-btn" data-read-id="${dream.id}">🎙️ Baca dengan AI (Lelaki)</button>
+                        <button class="edit-btn" data-edit-id="${dream.id}">✏️ Edit</button>
+                        <button class="delete-btn" data-delete-id="${dream.id}">🗑️ Hapus</button>
+                        <span class="speech-status" id="speechStatus-${dream.id}">✨ AI siap</span>
+                    </div>
+                </div>
+            `;
+            tabContent.appendChild(pane);
+        });
+
+        attachDynamicEvents();
+    }
+
+    function attachDynamicEvents() {
+        document.querySelectorAll('.voice-btn').forEach(btn => {
+            btn.removeEventListener('click', voiceHandler);
+            btn.addEventListener('click', voiceHandler);
+        });
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.removeEventListener('click', editHandler);
+            btn.addEventListener('click', editHandler);
+        });
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.removeEventListener('click', deleteHandler);
+            btn.addEventListener('click', deleteHandler);
+        });
+    }
+
+    function voiceHandler(e) {
+        const dreamId = e.currentTarget.getAttribute('data-read-id');
+        const dream = dreamsData.find(d => d.id === dreamId);
+        if (dream) speakDream(dream.description, dream.id);
+    }
+
+    const editModal = document.getElementById('editModal');
+    let editingDreamId = null;
+
+    function editHandler(e) {
+        const dreamId = e.currentTarget.getAttribute('data-edit-id');
+        const dream = dreamsData.find(d => d.id === dreamId);
+        if (!dream) return;
+        editingDreamId = dreamId;
+        document.getElementById('editTitle').value = dream.title;
+        document.getElementById('editShortLabel').value = dream.shortLabel || '';
+        document.getElementById('editDescription').value = dream.description;
+        editModal.style.display = 'flex';
+    }
+
+    function closeModal() { editModal.style.display = 'none'; editingDreamId = null; }
+
+    function saveEdit() {
+        if (!editingDreamId) return;
+        const newTitle = document.getElementById('editTitle').value.trim();
+        const newShort = document.getElementById('editShortLabel').value.trim();
+        const newDesc = document.getElementById('editDescription').value.trim();
+        if (!newTitle || !newDesc) { alert("Tajuk dan cerita mimpi wajib diisi!"); return; }
+        const index = dreamsData.findIndex(d => d.id === editingDreamId);
+        if (index !== -1) {
+            dreamsData[index].title = newTitle;
+            dreamsData[index].shortLabel = newShort || newTitle.substring(0,12);
+            dreamsData[index].description = newDesc;
+            saveDreamsToStorage();
+            renderDreamBook();
+            activateTab(editingDreamId);
+        }
+        closeModal();
+    }
+
+    function deleteHandler(e) {
+        const dreamId = e.currentTarget.getAttribute('data-delete-id');
+        if (confirm("Padam mimpi ini? Tindakan ini kekal.")) {
+            dreamsData = dreamsData.filter(d => d.id !== dreamId);
+            saveDreamsToStorage();
+            if (dreamsData.length === 0) {
+                currentActiveId = null;
+                renderDreamBook();
+            } else {
+                renderDreamBook();
+                activateTab(dreamsData[0].id);
+            }
+        }
+    }
+
+    function activateTab(tabId) {
+        const buttons = document.querySelectorAll('.tab-btn');
+        buttons.forEach(btn => {
+            if (btn.getAttribute('data-tab') === tabId) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        const panes = document.querySelectorAll('.tab-pane');
+        panes.forEach(pane => {
+            if (pane.getAttribute('data-pane') === tabId) pane.classList.add('active-pane');
+            else pane.classList.remove('active-pane');
+        });
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        currentActiveId = tabId;
+    }
+
+    function addNewDream(title, description, shortLabel) {
+        if (!title.trim() || !description.trim()) { alert("Tajuk dan cerita mimpi tidak boleh kosong!"); return false; }
+        const newId = "dream_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
+        const newDream = {
+            id: newId,
+            title: title.trim(),
+            shortLabel: shortLabel.trim() !== "" ? shortLabel.trim() : title.trim().substring(0, 12),
+            description: description.trim()
+        };
+        dreamsData.push(newDream);
+        saveDreamsToStorage();
+        renderDreamBook();
+        activateTab(newId);
+        return true;
+    }
+
+    // Fungsi import pukal
+    function bulkImport(dreamsArray) {
+        if (!Array.isArray(dreamsArray) || dreamsArray.length === 0) {
+            alert("Data mestilah berupa array tidak kosong.");
+            return false;
+        }
+        let added = 0;
+        for (let item of dreamsArray) {
+            if (item.title && item.description) {
+                const newId = "dream_" + Date.now() + "_" + Math.floor(Math.random() * 10000) + "_" + added;
+                const newDream = {
+                    id: newId,
+                    title: item.title.trim(),
+                    shortLabel: (item.shortLabel && item.shortLabel.trim()) ? item.shortLabel.trim() : item.title.trim().substring(0, 12),
+                    description: item.description.trim()
+                };
+                dreamsData.push(newDream);
+                added++;
+            }
+        }
+        if (added > 0) {
+            saveDreamsToStorage();
+            renderDreamBook();
+            if (dreamsData.length > 0) activateTab(dreamsData[dreamsData.length - 1].id);
+            alert(`Berjaya import ${added} mimpi.`);
+            return true;
+        } else {
+            alert("Tiada mimpi yang sah (setiap mimpi perlukan 'title' dan 'description').");
+            return false;
+        }
+    }
+
+    // Modal bulk
+    const bulkModal = document.getElementById('bulkModal');
+    function openBulkModal() { bulkModal.style.display = 'flex'; }
+    function closeBulkModal() { bulkModal.style.display = 'none'; }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDreamsFromStorage();
+        renderDreamBook();
+        if (dreamsData.length > 0) activateTab(dreamsData[0].id);
+        else currentActiveId = null;
+
+        if (window.speechSynthesis) {
+            if (window.speechSynthesis.getVoices().length) initVoiceSelection();
+            else window.speechSynthesis.onvoiceschanged = initVoiceSelection;
+        }
+
+        // Post satu mimpi
+        document.getElementById('postDreamBtn').addEventListener('click', () => {
+            const title = document.getElementById('newDreamTitle').value;
+            const desc = document.getElementById('newDreamDesc').value;
+            const short = document.getElementById('newDreamShort').value;
+            if (addNewDream(title, desc, short)) {
+                document.getElementById('newDreamTitle').value = '';
+                document.getElementById('newDreamDesc').value = '';
+                document.getElementById('newDreamShort').value = '';
+                const notif = document.createElement('div');
+                notif.textContent = '✅ Mimpi baru berjaya ditambah!';
+                notif.style.position = 'fixed'; notif.style.bottom = '20px'; notif.style.left = '50%';
+                notif.style.transform = 'translateX(-50%)'; notif.style.backgroundColor = '#2c5f7a';
+                notif.style.color = 'white'; notif.style.padding = '6px 16px'; notif.style.borderRadius = '40px';
+                notif.style.zIndex = '999'; notif.style.fontSize = '0.8rem';
+                document.body.appendChild(notif);
+                setTimeout(() => notif.remove(), 2000);
+            }
+        });
+
+        // Import pukal
+        document.getElementById('bulkImportBtn').addEventListener('click', openBulkModal);
+        document.getElementById('cancelBulkBtn').addEventListener('click', closeBulkModal);
+        document.getElementById('confirmBulkBtn').addEventListener('click', () => {
+            const jsonText = document.getElementById('bulkJsonData').value.trim();
+            if (!jsonText) { alert("Sila masukkan data JSON."); return; }
+            try {
+                const parsed = JSON.parse(jsonText);
+                if (bulkImport(parsed)) {
+                    document.getElementById('bulkJsonData').value = '';
+                    closeBulkModal();
+                }
+            } catch(e) {
+                alert("Format JSON tidak sah. Pastikan menggunakan tanda petik dua (\" ) dan struktur yang betul.\n\nContoh:\n[{\"title\":\"...\",\"description\":\"...\"}]");
+            }
+        });
+
+        // Edit modal
+        document.getElementById('cancelEditBtn').addEventListener('click', closeModal);
+        document.getElementById('saveEditBtn').addEventListener('click', saveEdit);
+        window.addEventListener('click', (e) => { if (e.target === editModal) closeModal(); if (e.target === bulkModal) closeBulkModal(); });
+    });
+</script>
+</body>
+</html>
