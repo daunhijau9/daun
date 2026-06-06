@@ -5,147 +5,107 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Login - Buku Mimpi</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        .login-container {
-            max-width: 450px;
-            width: 100%;
-            margin: 2rem auto;
-        }
-        .login-card {
-            background: rgba(255,248,235,0.95);
-            border-radius: 1.5rem;
-            padding: 2rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-        .login-card h2 {
-            color: #4b2e1a;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            color: #5a3e28;
-            margin-bottom: 0.3rem;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 0.7rem;
-            border-radius: 1rem;
-            border: 1px solid #e2caa4;
-            background: #fffdf9;
-            font-family: inherit;
-        }
-        .btn-login {
-            width: 100%;
-            background: #8b6946;
-            margin-top: 1rem;
-        }
-        .message {
-            margin-top: 1rem;
-            padding: 0.5rem;
-            border-radius: 1rem;
-            text-align: center;
-            font-size: 0.8rem;
-        }
+        .login-container { max-width: 450px; width: 100%; margin: 2rem auto; }
+        .login-card { background: rgba(255,248,235,0.95); border-radius: 1.5rem; padding: 2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .login-card h2 { color: #4b2e1a; margin-bottom: 1.5rem; text-align: center; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-weight: 600; color: #5a3e28; margin-bottom: 0.3rem; }
+        .form-group input { width: 100%; padding: 0.7rem; border-radius: 1rem; border: 1px solid #e2caa4; background: #fffdf9; font-family: inherit; }
+        .btn-login { width: 100%; background: #8b6946; margin-top: 1rem; }
+        .message { margin-top: 1rem; padding: 0.5rem; border-radius: 1rem; text-align: center; font-size: 0.8rem; }
         .error { background: #ffe0e0; color: #aa2e2e; }
         .success { background: #e0ffe0; color: #2e6a2e; }
-        
-        /* Override untuk halaman login */
-        .main-content {
-            margin-left: 0;
-            padding-top: 1rem;
-        }
-        @media (max-width: 768px) {
-            .main-content {
-                padding-top: 1rem;
-            }
-        }
+        .main-content { margin-left: 0; padding-top: 1rem; }
+        @media (max-width: 768px) { .main-content { padding-top: 1rem; } }
+        .register-link { text-align: center; margin-top: 1rem; }
+        .register-link a { color: #2c5f7a; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
-    <!-- BUTANG HAMBURGER (MOBILE) -->
     <button class="hamburger" id="hamburgerBtn">☰</button>
     <div class="overlay" id="overlay"></div>
-
-    <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h2>📖 BUKU MIMPI</h2>
-            <p>Karangan mimpi-mimpi</p>
-        </div>
+        <div class="sidebar-header"><h2>📖 BUKU MIMPI</h2><p>Karangan mimpi-mimpi</p></div>
         <div class="sidebar-menu">
-            <a href="index.html" class="menu-item" id="homeLink">
-                <i>🏠</i> <span>Home</span>
-            </a>
-            <div class="menu-item active">
-                <i>🔑</i> <span>Login</span>
-            </div>
+            <a href="index.html" class="menu-item"><i>🏠</i> <span>Home</span></a>
+            <div class="menu-item active"><i>🔑</i> <span>Login</span></div>
         </div>
-        <div class="sidebar-footer">
-            <p>✦ Setiap mimpi ada kisahnya ✦</p>
-        </div>
+        <div class="sidebar-footer"><p>✦ Setiap mimpi ada kisahnya ✦</p></div>
     </div>
-
     <div class="main-content">
         <div class="login-container">
             <div class="login-card">
-                <h2>🔐 Log Masuk Admin</h2>
-                <div class="form-group">
-                    <label>👤 Nama Pengguna</label>
-                    <input type="text" id="loginUsername" placeholder="admin">
-                </div>
-                <div class="form-group">
-                    <label>🔒 Kata Laluan</label>
-                    <input type="password" id="loginPassword" placeholder="********">
-                </div>
+                <h2>🔐 Log Masuk</h2>
+                <div class="form-group"><label>👤 Nama Pengguna</label><input type="text" id="loginUsername" placeholder="admin"></div>
+                <div class="form-group"><label>🔒 Kata Laluan</label><input type="password" id="loginPassword" placeholder="********"></div>
                 <button class="btn btn-login" id="doLoginBtn">Log Masuk</button>
                 <div id="loginMessage" class="message"></div>
+                <div class="register-link">Belum ada akaun? <a href="#" id="registerLink">Daftar di sini</a></div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal Daftar -->
+    <div id="registerModal" class="modal register-modal" style="display:none;">
+        <div class="modal-content">
+            <h3>📝 Daftar Akaun Baru</h3>
+            <div class="form-group"><label>👤 Nama Pengguna</label><input type="text" id="regUsername"></div>
+            <div class="form-group"><label>🔒 Kata Laluan (min 4 huruf)</label><input type="password" id="regPassword"></div>
+            <div class="form-group"><label>🔒 Ulang Kata Laluan</label><input type="password" id="regConfirmPassword"></div>
+            <div class="modal-buttons"><button class="btn" id="cancelRegisterBtn">Batal</button><button class="btn" id="confirmRegisterBtn">Daftar</button></div>
+            <div id="registerMessage" style="margin-top:1rem; font-size:0.8rem; text-align:center;"></div>
         </div>
     </div>
 
     <script src="script.js"></script>
     <script>
-        // Fungsi sidebar
-        function closeSidebar() {
-            document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('overlay').classList.remove('active');
-        }
-        function openSidebar() {
-            document.getElementById('sidebar').classList.add('open');
-            document.getElementById('overlay').classList.add('active');
-        }
+        // Sidebar functions (sama)
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('active'); }
+        function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('active'); }
         document.getElementById('hamburgerBtn').onclick = openSidebar;
         document.getElementById('overlay').onclick = closeSidebar;
-        document.getElementById('homeLink').onclick = closeSidebar;
-        
+
+        // Modal daftar
+        const modal = document.getElementById('registerModal');
+        function openModal() { modal.style.display = 'flex'; }
+        function closeModal() { modal.style.display = 'none'; }
+        document.getElementById('registerLink').onclick = (e) => { e.preventDefault(); openModal(); };
+        document.getElementById('cancelRegisterBtn').onclick = closeModal;
+
+        document.getElementById('confirmRegisterBtn').onclick = async () => {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('regConfirmPassword').value;
+            if (!username || !password) { document.getElementById('registerMessage').innerHTML = '<span style="color:#aa2e2e;">Sila isi semua ruangan</span>'; return; }
+            if (password !== confirm) { document.getElementById('registerMessage').innerHTML = '<span style="color:#aa2e2e;">Kata laluan tidak sama</span>'; return; }
+            const result = await registerUser(username, password);
+            if (result.success) {
+                document.getElementById('registerMessage').innerHTML = `<span style="color:#2e6a2e;">${result.message}</span>`;
+                setTimeout(() => { closeModal(); alert(result.message); }, 1500);
+            } else {
+                document.getElementById('registerMessage').innerHTML = `<span style="color:#aa2e2e;">${result.message}</span>`;
+            }
+        };
+
         // Login
-        document.getElementById('doLoginBtn').addEventListener('click', () => {
+        document.getElementById('doLoginBtn').onclick = async () => {
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value;
-            
-            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-                localStorage.setItem(SESSION_KEY, "logged_in");
-                localStorage.setItem("buku_mimpi_current_user", username);
+            const success = await loginUser(username, password);
+            if (success) {
+                setSession(username);
                 window.location.href = "dashboard.html";
             } else {
                 const msgDiv = document.getElementById('loginMessage');
                 msgDiv.textContent = "Nama pengguna atau kata laluan salah";
                 msgDiv.className = "message error";
-                setTimeout(() => {
-                    msgDiv.textContent = "";
-                    msgDiv.className = "message";
-                }, 3000);
+                setTimeout(() => { msgDiv.textContent = ""; msgDiv.className = "message"; }, 3000);
             }
-        });
-        
-        if (localStorage.getItem(SESSION_KEY) === "logged_in") {
-            window.location.href = "dashboard.html";
-        }
+        };
+
+        if (isLoggedIn()) window.location.href = "dashboard.html";
     </script>
 </body>
 </html>
